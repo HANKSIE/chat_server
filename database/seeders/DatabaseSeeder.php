@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\FriendRequest;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
         User::truncate();
+        FriendRequest::truncate();
         $this->call([
             UserSeeder::class,
         ]);

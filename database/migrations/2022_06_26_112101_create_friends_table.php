@@ -17,7 +17,7 @@ class CreateFriendsTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('friend_id')->constrained('users');
-            $table->foreignId('channel_id')->constrained('channels');
+            $table->foreignId('group_id')->constrained('groups');
             $table->timestamps();
         });
     }

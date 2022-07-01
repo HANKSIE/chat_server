@@ -21,9 +21,13 @@ class UserSeeder extends Seeder
             'password' => Hash::make('iamfaker'),
         ]);
         User::factory()->create([
-            'name' => 'hanksie',
-            'email' => 'kkuuccff@gmail.com',
-            'password' => Hash::make('kkuuccff'),
+            'name' => 'faker2',
+            'email' => 'iamfaker2@gmail.com',
+            'password' => Hash::make('iamfaker2'),
+        ]);
+        User::factory()->count(10)->create();
+        User::first()->friendRequests()->create([
+            'friend_id' => 2
         ]);
     }
 }
