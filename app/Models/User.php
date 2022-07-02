@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -42,7 +43,102 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function friendRequests(){
-        return $this->hasMany(FriendRequest::class);
+    public function friends()
+    {
+        return $this->hasManyThrough(User::class, Friend::class, 'friend_id', 'id');
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, GroupMember::class)->withPivot('is_admin');
+    }
+
+    //=======================================================================================
+
+    public function friendRequestsToMe(){
+        return $this->hasMany(FriendRequest::class, 'recipient_id');
+    }
+
+    public function friendRequestsToOther(){
+        return $this->hasMany(FriendRequest::class, 'sender_id');
+    }
+
+    public function createFriendRequest($id)
+    {
+        return $this->friendRequestsToOther()->firstOrCreate(['recipient_id'=> $id]);
+    }
+
+    public function denyFriendRequest($id)
+    {
+        return $this->friendRequestsToMe()->where(['sender_id' => $id])->delete();
+    }
+
+    public function acceptFriendRequest($id)
+    {
+        $req = $this->friendRequestsToMe()->where(['sender_id' => $id])->first();
+        if(is_null($req)) return false;
+        return DB::transaction(function() use ($id, $req) {
+            $group = Group::create(['is_one_to_one' => true]);
+            $this->joinGroup($group->id, true);
+            User::find($id)->joinGroup($group->id, true);
+            Friend::create(['group_id' => $group->id, 'user_id' => $this->id, 'friend_id' => $id]);
+            Friend::create(['group_id' => $group->id, 'user_id' => $id, 'friend_id' => $this->id]);
+            $req->delete();
+            return true;
+        });
+    }
+
+    public function unFriend($id){
+        return DB::transaction(function() use ($id){
+            Friend::where(['user_id' => $this->id, 'friend_id' => $id])->delete();
+            Friend::where(['user_id' => $id, 'friend_id' => $this->id])->delete();
+        });
+    }
+
+    public function groupRequestsToMe(){
+        return $this->hasMany(GroupRequest::class, 'recipient_id');
+    }
+
+    public function groupRequestsToOther(){
+        return $this->hasMany(GroupRequest::class, 'sender_id');
+    }
+
+    public function createGroup($name){
+        return DB::transaction(function() use ($name){
+            $group = Group::create(['name' => $name, 'is_one_to_one' => false]);
+            $this->joinGroup($group->id, true);
+            return $group;
+        });
+    }
+
+    public function joinGroup($groupID, $isAdmin = false)
+    {
+        return GroupMember::firstOrCreate(['group_id' => $groupID, 'user_id' => $this->id, 'is_admin' => $isAdmin]);
+    }
+
+    public function leaveGroup($groupID)
+    {
+        return GroupMember::where(['group_id' => $groupID, 'user_id' => $this->id])->delete();
+    }
+
+    public function createGroupRequest($userID, $groupID){
+        $group = $this->groups()->find($groupID);
+        if(is_null($group) || !is_null($group->members()->find($userID))) return false;
+        return $group->requests()->firstOrCreate(['sender_id'=> $this->id, 'recipient_id' => $userID]);
+    }
+
+    public function denyGroupRequest($userID, $groupID)
+    {
+        return $this->groupRequestsToMe()->where(['group_id' => $groupID,'sender_id' => $userID])->delete();
+    }
+
+    public function acceptGroupRequest($groupID)
+    {
+        if(!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null( Group::find($groupID))) return false;
+        return DB::transaction(function() use ($groupID) {
+            $this->joinGroup($groupID);
+            $this->groupRequestsToMe()->where('group_id', $groupID)->delete();
+            return true;
+        });
     }
 }

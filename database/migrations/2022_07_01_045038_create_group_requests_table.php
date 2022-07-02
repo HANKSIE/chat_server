@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFriendRequestsTable extends Migration
+class CreateGroupRequestsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class CreateFriendRequestsTable extends Migration
      */
     public function up()
     {
-        Schema::create('friend_requests', function(Blueprint $table){
+        Schema::create('group_requests', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('group_id')->constrained('groups');
             $table->foreignId('sender_id')->constrained('users');
             $table->foreignId('recipient_id')->constrained('users');
             $table->timestamps();
@@ -28,6 +29,6 @@ class CreateFriendRequestsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('friend_requests');
+        Schema::dropIfExists('group_requests');
     }
 }

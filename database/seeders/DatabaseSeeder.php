@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\FriendRequest;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
@@ -17,8 +16,12 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         Schema::disableForeignKeyConstraints();
-        User::truncate();
-        FriendRequest::truncate();
+        $tables = DB::select('SHOW TABLES');
+        $db = env('DB_DATABASE');
+        // truncate all table
+        foreach ($tables as $table) {
+            DB::table($table->{"Tables_in_{$db}"})->truncate();
+        }
         $this->call([
             UserSeeder::class,
         ]);
