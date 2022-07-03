@@ -59,13 +59,13 @@ class User extends Authenticatable
         return $this->hasMany(FriendRequest::class, 'recipient_id');
     }
 
-    public function friendRequestsToOther(){
+    public function friendRequestsFromMe(){
         return $this->hasMany(FriendRequest::class, 'sender_id');
     }
 
     public function createFriendRequest($id)
     {
-        return $this->friendRequestsToOther()->firstOrCreate(['recipient_id'=> $id]);
+        return $this->friendRequestsFromMe()->firstOrCreate(['recipient_id'=> $id]);
     }
 
     public function denyFriendRequest($id)
