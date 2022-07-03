@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     public function groups()
     {
-        return $this->belongsToMany(Group::class, GroupMember::class)->withPivot('is_admin');
+        return $this->belongsToMany(Group::class, 'group_members')->withPivot('is_admin');
     }
 
     //=======================================================================================
@@ -113,12 +113,12 @@ class User extends Authenticatable
 
     public function joinGroup($groupID, $isAdmin = false)
     {
-        return GroupMember::firstOrCreate(['group_id' => $groupID, 'user_id' => $this->id, 'is_admin' => $isAdmin]);
+        return Group::find($groupID)->members()->attach($this, ['is_admin' => $isAdmin]);
     }
 
     public function leaveGroup($groupID)
     {
-        return GroupMember::where(['group_id' => $groupID, 'user_id' => $this->id])->delete();
+        return $this->groups()->where(['group_id' => $groupID])->delete();
     }
 
     public function createGroupRequest($userID, $groupID){
