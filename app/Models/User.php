@@ -99,7 +99,7 @@ class User extends Authenticatable
         return $this->hasMany(GroupRequest::class, 'recipient_id');
     }
 
-    public function groupRequestsToOther(){
+    public function groupRequestsFromMe(){
         return $this->hasMany(GroupRequest::class, 'sender_id');
     }
 
