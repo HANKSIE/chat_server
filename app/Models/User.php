@@ -136,7 +136,7 @@ class User extends Authenticatable
 
     public function createGroupRequest($userID, $groupID)
     {
-        $group = $this->groups()->find($groupID);
+        $group = $this->groups()->notOneToOne()->find($groupID);
         if(is_null($group) || !is_null($group->members()->find($userID))) return false;
         return $group->requests()->firstOrCreate(['sender_id'=> $this->id, 'recipient_id' => $userID]);
     }
@@ -148,7 +148,7 @@ class User extends Authenticatable
 
     public function acceptGroupRequest($groupID)
     {
-        $group = Group::find($groupID);
+        $group = Group::notOneToOne()->find($groupID);
         if(!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null($group)) return false;
         return DB::transaction(function() use ($group) {
             $this->joinGroup($group);

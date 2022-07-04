@@ -21,6 +21,14 @@ class Group extends Model
 
     public function requests()
     {
-        return  $this->hasMany(GroupRequest::class);
+        return $this->hasMany(GroupRequest::class);
+    }
+
+    public function scopeNotOneToOne($query){
+        $query->where('is_one_to_one', false);
+    }
+
+    public function scopeOneToOne($query){
+        $query->where('is_one_to_one', true);
     }
 }
