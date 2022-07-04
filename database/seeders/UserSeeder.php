@@ -18,6 +18,6 @@ class UserSeeder extends Seeder
         $user1 = User::find(9);
         $user2 = User::find(10);
         $user1->createFriendRequest($user2->id);
-        $user2->acceptFriendRequest($user1->id);
+        $user2->acceptFriendRequest($user1);
     }
 }

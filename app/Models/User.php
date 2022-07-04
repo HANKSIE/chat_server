@@ -45,7 +45,7 @@ class User extends Authenticatable
 
     public function friends()
     {
-        return $this->belongsToMany(User::class, Friend::class, 'user_id', 'friend_id');
+        return $this->belongsToMany(User::class, Friend::class, 'user_id', 'friend_id')->withPivot('group_id')->withTimestamps();
     }
 
     public function groups()
@@ -53,15 +53,27 @@ class User extends Authenticatable
         return $this->belongsToMany(Group::class, 'group_members')->withPivot('is_admin');
     }
 
-    //=======================================================================================
-
-    public function friendRequestsToMe(){
+    public function friendRequestsToMe()
+    {
         return $this->hasMany(FriendRequest::class, 'recipient_id');
     }
 
-    public function friendRequestsFromMe(){
+    public function friendRequestsFromMe()
+    {
         return $this->hasMany(FriendRequest::class, 'sender_id');
     }
+
+    public function groupRequestsToMe()
+    {
+        return $this->hasMany(GroupRequest::class, 'recipient_id');
+    }
+
+    public function groupRequestsFromMe()
+    {
+        return $this->hasMany(GroupRequest::class, 'sender_id');
+    }
+
+    //=======================================================================================
 
     public function createFriendRequest($id)
     {
@@ -73,55 +85,57 @@ class User extends Authenticatable
         return $this->friendRequestsToMe()->where(['sender_id' => $id])->delete();
     }
 
-    public function acceptFriendRequest($id)
+    public function acceptFriendRequest($user)
     {
-        $req = $this->friendRequestsToMe()->where(['sender_id' => $id])->first();
+        $req = $this->friendRequestsToMe()->where(['sender_id' => $user->id])->first();
         if(is_null($req)) return false;
-        return DB::transaction(function() use ($id, $req) {
-            $group = Group::create(['is_one_to_one' => true]);
-            $this->joinGroup($group->id, true);
-            User::find($id)->joinGroup($group->id, true);
-            Friend::create(['group_id' => $group->id, 'user_id' => $this->id, 'friend_id' => $id]);
-            Friend::create(['group_id' => $group->id, 'user_id' => $id, 'friend_id' => $this->id]);
+        return DB::transaction(function() use ($user, $req) {
+            $this->beFriend($user);
             $req->delete();
             return true;
         });
     }
 
-    public function unFriend($id){
-        return DB::transaction(function() use ($id){
-            Friend::where(['user_id' => $this->id, 'friend_id' => $id])->delete();
-            Friend::where(['user_id' => $id, 'friend_id' => $this->id])->delete();
+    public function beFriend($user)
+    {
+        return DB::transaction(function() use ($user){
+            $group = Group::create(['is_one_to_one' => true]);
+            $this->joinGroup($group, true);
+            $user->joinGroup($group, true);
+            $this->friends()->attach($user, ['group_id' => $group->id]);
+            $user->friends()->attach($this, ['group_id' => $group->id]);
         });
     }
 
-    public function groupRequestsToMe(){
-        return $this->hasMany(GroupRequest::class, 'recipient_id');
+    public function unFriend($user)
+    {
+        return DB::transaction(function() use ($user){
+            $this->friends()->detach($user->id);
+            $user->friends()->detach($this->id);
+        });
     }
 
-    public function groupRequestsFromMe(){
-        return $this->hasMany(GroupRequest::class, 'sender_id');
-    }
-
-    public function createGroup($name){
+    public function createGroup($name)
+    {
         return DB::transaction(function() use ($name){
             $group = Group::create(['name' => $name, 'is_one_to_one' => false]);
-            $this->joinGroup($group->id, true);
+            $this->joinGroup($group, true);
             return $group;
         });
     }
 
-    public function joinGroup($groupID, $isAdmin = false)
+    public function joinGroup($group, $isAdmin = false)
     {
-        return Group::find($groupID)->members()->attach($this, ['is_admin' => $isAdmin]);
+        return $group->members()->attach($this, ['is_admin' => $isAdmin]);
     }
 
-    public function leaveGroup($groupID)
+    public function leaveGroup($group)
     {
-        return $this->groups()->where(['group_id' => $groupID])->delete();
+        return $group->members()->detach($this);
     }
 
-    public function createGroupRequest($userID, $groupID){
+    public function createGroupRequest($userID, $groupID)
+    {
         $group = $this->groups()->find($groupID);
         if(is_null($group) || !is_null($group->members()->find($userID))) return false;
         return $group->requests()->firstOrCreate(['sender_id'=> $this->id, 'recipient_id' => $userID]);
@@ -129,15 +143,16 @@ class User extends Authenticatable
 
     public function denyGroupRequest($userID, $groupID)
     {
-        return $this->groupRequestsToMe()->where(['group_id' => $groupID,'sender_id' => $userID])->delete();
+        return $this->groupRequestsToMe()->where(['group_id' => $groupID, 'sender_id' => $userID])->delete();
     }
 
     public function acceptGroupRequest($groupID)
     {
-        if(!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null( Group::find($groupID))) return false;
-        return DB::transaction(function() use ($groupID) {
-            $this->joinGroup($groupID);
-            $this->groupRequestsToMe()->where('group_id', $groupID)->delete();
+        $group = Group::find($groupID);
+        if(!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null($group)) return false;
+        return DB::transaction(function() use ($group) {
+            $this->joinGroup($group);
+            $this->groupRequestsToMe()->where('group_id', $group->id)->delete();
             return true;
         });
     }
