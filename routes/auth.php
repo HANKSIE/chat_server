@@ -25,15 +25,11 @@ Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke
                 ->middleware(['signed', 'throttle:6,1'])
                 ->name('verification.verify');
 
-Route::middleware('auth')->group(function(){
+Route::middleware('auth:sanctum')->group(function(){
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
     ->middleware(['throttle:6,1'])
     ->name('verification.send');
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-
-    Route::get('/user', function(Request $request){
-    return response()->json(['user' => $request->user()]);
-    });
 });
