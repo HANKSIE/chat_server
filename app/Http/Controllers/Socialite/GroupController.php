@@ -4,16 +4,20 @@ namespace App\Http\Controllers\Socialite;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Services\GroupService;
 
 class GroupController extends Controller
 {
+    private $groupService;
+
+    public function __construct(GroupService $groupService)
+    {
+        $this->groupService = $groupService;
+    }
+
     public function index()
     {
-        $groups = auth()->user()->groups()->select('groups.id')->get()->map(function($group) {
-            return $group->id;
-        });
-
-        return response()->json(['groups' => $groups]);
+        return response()->json(['groups' => $this->groupService->getAllIDs(auth()->user()->id)]);
     }
 
     public function store($request)

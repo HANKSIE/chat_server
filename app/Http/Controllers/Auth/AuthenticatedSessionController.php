@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return response()->json(['user' => $request->user(), ], Response::HTTP_OK);
+        return response()->json(['user' => $request->user()], Response::HTTP_OK);
     }
 
     /**

@@ -17,7 +17,6 @@ class CreateGroupMembersTable extends Migration
             $table->id();
             $table->foreignId('group_id')->constrained('groups');
             $table->foreignId('user_id')->constrained('users');
-            $table->boolean('is_admin');
             $table->timestamps();
         });
     }

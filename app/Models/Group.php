@@ -16,7 +16,7 @@ class Group extends Model
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'group_members')->withPivot('is_admin')->withTimestamps();
+        return $this->belongsToMany(User::class, 'group_members');
     }
 
     public function messages()

@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Group;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+
 class UserSeeder extends Seeder
 {
     /**
@@ -27,7 +29,10 @@ class UserSeeder extends Seeder
         ]);
         $user1 = User::find(11);
         $user2 = User::find(12);
-        $user1->createFriendRequest($user2->id);
-        $user2->acceptFriendRequest($user1);
+        $group = Group::create(['is_one_to_one' => true]);
+        $group->members()->attach($user1);
+        $group->members()->attach($user2);
+        $user1->friends()->attach($user2, ['group_id' => $group->id]);
+        $user2->friends()->attach($user1, ['group_id' => $group->id]);
     }
 }

@@ -5,12 +5,12 @@ namespace App\Events;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class Group implements ShouldBroadcast
+class GroupMessage implements ShouldBroadcast
 {
     /**
      * @var int|string
      */
-    private $id;
+    public $groupID;
 
     /**
      * @var string
@@ -23,15 +23,15 @@ class Group implements ShouldBroadcast
      * @param  \App\Models\User  $user
      * @return void
      */
-    public function __construct($id, $message)
+    public function __construct($groupID, $message)
     {
-        $this->id = $id;
+        $this->groupID = $groupID;
         $this->message = $message;
     }
 
     public function broadcastOn()
     {
-        return new PresenceChannel("group.{$this->id}");
+        return new PresenceChannel("group.{$this->groupID}");
     }
 
     public function broadcastAs()

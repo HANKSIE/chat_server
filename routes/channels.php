@@ -1,5 +1,6 @@
 <?php
 
+use App\Broadcasting\GroupChannel;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -11,8 +12,6 @@ use Illuminate\Support\Facades\Broadcast;
 | application supports. The given channel authorization callbacks are
 | used to check if an authenticated user can listen to the channel.
 |
-*/
+ */
 
-Broadcast::channel('group.{groupID}', function ($user, $groupID) {
-    return $user->groups()->where('groups.id', $groupID)->exists();
-});
+Broadcast::channel('group.{groupID}', GroupChannel::class);
