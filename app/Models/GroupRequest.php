@@ -12,7 +12,7 @@ class GroupRequest extends Model
     protected $fillable = [
         'group_id',
         'sender_id',
-        'recipient_id'
+        'recipient_id',
     ];
 
     public function sender()
@@ -23,5 +23,10 @@ class GroupRequest extends Model
     public function recipient()
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 }

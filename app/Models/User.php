@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -77,7 +76,7 @@ class User extends Authenticatable
 
     public function createFriendRequest($id)
     {
-        return $this->friendRequestsFromMe()->firstOrCreate(['recipient_id'=> $id]);
+        return $this->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $id]);
     }
 
     public function denyFriendRequest($id)
@@ -88,8 +87,11 @@ class User extends Authenticatable
     public function acceptFriendRequest($user)
     {
         $req = $this->friendRequestsToMe()->where(['sender_id' => $user->id])->first();
-        if(is_null($req)) return false;
-        return DB::transaction(function() use ($user, $req) {
+        if (is_null($req)) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($user, $req) {
             $this->beFriend($user);
             $req->delete();
             return true;
@@ -98,7 +100,7 @@ class User extends Authenticatable
 
     public function beFriend($user)
     {
-        return DB::transaction(function() use ($user){
+        return DB::transaction(function () use ($user) {
             $group = Group::create(['is_one_to_one' => true]);
             $this->joinGroup($group, true);
             $user->joinGroup($group, true);
@@ -109,7 +111,7 @@ class User extends Authenticatable
 
     public function unFriend($user)
     {
-        return DB::transaction(function() use ($user){
+        return DB::transaction(function () use ($user) {
             $this->friends()->detach($user->id);
             $user->friends()->detach($this->id);
         });
@@ -117,7 +119,7 @@ class User extends Authenticatable
 
     public function createGroup($name)
     {
-        return DB::transaction(function() use ($name){
+        return DB::transaction(function () use ($name) {
             $group = Group::create(['name' => $name, 'is_one_to_one' => false]);
             $this->joinGroup($group, true);
             return $group;
@@ -137,8 +139,11 @@ class User extends Authenticatable
     public function createGroupRequest($userID, $groupID)
     {
         $group = $this->groups()->notOneToOne()->find($groupID);
-        if(is_null($group) || !is_null($group->members()->find($userID))) return false;
-        return $group->requests()->firstOrCreate(['sender_id'=> $this->id, 'recipient_id' => $userID]);
+        if (is_null($group) || !is_null($group->members()->find($userID))) {
+            return false;
+        }
+
+        return $group->requests()->firstOrCreate(['sender_id' => $this->id, 'recipient_id' => $userID]);
     }
 
     public function denyGroupRequest($userID, $groupID)
@@ -149,11 +154,19 @@ class User extends Authenticatable
     public function acceptGroupRequest($groupID)
     {
         $group = Group::notOneToOne()->find($groupID);
-        if(!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null($group)) return false;
-        return DB::transaction(function() use ($group) {
+        if (!$this->groupRequestsToMe()->where('group_id', $groupID)->exists() || is_null($group)) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($group) {
             $this->joinGroup($group);
             $this->groupRequestsToMe()->where('group_id', $group->id)->delete();
             return true;
         });
+    }
+
+    public function createMessage($groupID, $body)
+    {
+        return $this->groups()->find($groupID)->messages()->create(['user_id' => $this->id, 'body' => $body]);
     }
 }

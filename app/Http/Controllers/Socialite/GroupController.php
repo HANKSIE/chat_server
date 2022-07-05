@@ -9,10 +9,11 @@ class GroupController extends Controller
 {
     public function index()
     {
-        return auth()->user()->groups()->select('groups.id')->get()->map(function($group)
-        {
+        $groups = auth()->user()->groups()->select('groups.id')->get()->map(function($group) {
             return $group->id;
         });
+
+        return response()->json(['groups' => $groups]);
     }
 
     public function store($request)
