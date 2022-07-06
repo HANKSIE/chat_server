@@ -42,7 +42,7 @@ class GroupService
 
     public function has($userID, $groupID)
     {
-        return User::find($userID)->groups()->find($groupID)->exists();
+        return User::find($userID)->groups()->where('groups.id', $groupID)->exists();
     }
 
     public function createRequest($senderID, $recipientID, $groupID)

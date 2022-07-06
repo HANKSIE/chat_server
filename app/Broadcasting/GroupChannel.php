@@ -3,9 +3,17 @@
 namespace App\Broadcasting;
 
 use App\Models\User;
+use App\Services\GroupService;
 
 class GroupChannel
 {
+    private $groupService;
+
+    public function __construct(GroupService $groupService)
+    {
+        $this->groupService = $groupService;
+    }
+
     /**
      * Authenticate the user's access to the channel.
      *
@@ -14,7 +22,7 @@ class GroupChannel
      */
     public function join(User $user, $groupID)
     {
-        if ($user->hasGroup($groupID)) {
+        if ($this->groupService->has($user->id, $groupID)) {
             return $user;
         }
     }

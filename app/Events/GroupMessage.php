@@ -15,7 +15,7 @@ class GroupMessage implements ShouldBroadcast
     /**
      * @var string
      */
-    public $message;
+    public $body;
 
     /**
      * Create a new event instance.
@@ -23,10 +23,10 @@ class GroupMessage implements ShouldBroadcast
      * @param  \App\Models\User  $user
      * @return void
      */
-    public function __construct($groupID, $message)
+    public function __construct($groupID, $body)
     {
         $this->groupID = $groupID;
-        $this->message = $message;
+        $this->body = $body;
     }
 
     public function broadcastOn()

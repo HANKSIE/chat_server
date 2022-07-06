@@ -14,7 +14,6 @@ class GroupController extends Controller
     {
         $this->groupService = $groupService;
     }
-
     public function index()
     {
         return response()->json(['groups' => $this->groupService->getAllIDs(auth()->user()->id)]);

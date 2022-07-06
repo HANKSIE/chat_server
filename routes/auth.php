@@ -6,29 +6,28 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [RegisteredUserController::class, 'store'])
-                ->name('register');
+    ->name('register');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-                ->name('login');
+    ->name('login');
 
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-                ->name('password.email');
+    ->name('password.email');
 
 Route::post('/reset-password', [NewPasswordController::class, 'store'])
-                ->name('password.update');
+    ->name('password.update');
 
 Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-                ->middleware(['signed', 'throttle:6,1'])
-                ->name('verification.verify');
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
 
-Route::middleware('auth:sanctum')->group(function(){
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-    ->middleware(['throttle:6,1'])
-    ->name('verification.send');
+        ->middleware(['throttle:6,1'])
+        ->name('verification.send');
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');

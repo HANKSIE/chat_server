@@ -25,20 +25,24 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'avatar' => ['image', 'nullable', 'mimes:jpeg,png,jpg'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $avatar = $request->file('avatar');
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'avatar_url' => !!$avatar ? asset('storage/' . $avatar->store('avatars')) : null,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return response()->json(['user' => $request->user(), ], Response::HTTP_OK);
+        return response()->json(['user' => $user], Response::HTTP_OK);
     }
 }
