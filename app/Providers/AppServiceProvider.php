@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use MeiliSearch\Client;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Update Meilisearch SearchableAttributes
+        $client = new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key'));
+        $client->index('users')->updateSearchableAttributes(['name']);
     }
 }
