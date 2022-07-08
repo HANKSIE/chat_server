@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
  */
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/socialite.php';
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('groups', GroupController::class)->except(['create', 'edit']);
     Route::get('/user', function (Request $request) {

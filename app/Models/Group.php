@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Group extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     protected $fillable = [
         'name',
+        'avatar_url',
         'is_one_to_one',
     ];
 
@@ -37,5 +39,10 @@ class Group extends Model
     public function scopeOneToOne($query)
     {
         $query->where('is_one_to_one', true);
+    }
+
+    public function toSearchableArray()
+    {
+        return ['name' => $this->name];
     }
 }

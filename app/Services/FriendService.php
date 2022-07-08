@@ -62,4 +62,12 @@ class FriendService
             $recipient->friends()->detach($sender->id);
         });
     }
+
+    public function simplePaginate($userID, $keyword = '', $perPage = 5)
+    {
+        $friendIDs = User::find($userID)->friends->map(function ($friend) {
+            return $friend->id;
+        })->toArray();
+        return User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
+    }
 }

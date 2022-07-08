@@ -14,7 +14,7 @@ class Friend extends Pivot
     protected $fillable = [
         'user_id',
         'friend_id',
-        'group_id'
+        'group_id',
     ];
 
     public function group()
