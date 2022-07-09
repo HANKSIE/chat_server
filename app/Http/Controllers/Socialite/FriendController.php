@@ -14,7 +14,7 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-    public function simplePaginate($keyword = '', $perPage = 5)
+    public function simplePaginate($perPage = 5, $keyword = '')
     {
         return response()->json($this->friendService->simplePaginate(auth()->user()->id, $keyword, $perPage));
     }
