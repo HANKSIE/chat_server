@@ -15,7 +15,7 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->postJson('/login', [
+        $this->postJson(route('login'), [
             'email' => $user->email,
             'password' => 'password',
         ])->assertOk()->assertJson(function (AssertableJson $json) use ($user) {
@@ -23,7 +23,7 @@ class AuthenticationTest extends TestCase
                 $json->whereAll([
                     'id' => $user->id,
                     'name' => $user->name,
-                    'email' => $user->email
+                    'email' => $user->email,
                 ])->etc();
             });
         });
@@ -36,7 +36,7 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->post('/login', [
+        $this->post(route('login'), [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);

@@ -13,7 +13,7 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register()
     {
-        $response = $this->postJson('/register', [
+        $response = $this->postJson(route('register'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
@@ -26,11 +26,10 @@ class RegistrationTest extends TestCase
                 $json->whereAll([
                     'id' => $user->id,
                     'name' => $user->name,
-                    'email' => $user->email
+                    'email' => $user->email,
                 ])->etc();
             });
         });
-
 
     }
 }
