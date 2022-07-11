@@ -68,6 +68,35 @@ class FriendService
         $friendIDs = User::find($userID)->friends->map(function ($friend) {
             return $friend->id;
         })->toArray();
-        return User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
+        $simplePaginate = User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
+        $simplePaginate->load([
+            'groups' => function ($query) use ($userID) {
+                $query->oneToOne()->select('groups.id')->whereHas('members', function ($query) use ($userID) {
+                    $query->where('user_id', $userID);
+                });
+            },
+            'groups.latestMessage',
+        ]);
+        return tap($simplePaginate, function ($paginatedInstance) {
+            return $paginatedInstance->getCollection()->transform(function ($user) {
+                $group = $user->groups[0];
+                $latestMessage = $group->latestMessage;
+                unset($group->pivot);
+                unset($group->latestMessage);
+                unset($user->groups);
+                return [
+                    'user' => $user,
+                    'group' => $group,
+                    'latest_message' => $latestMessage,
+                ];
+            });
+        });
+    }
+
+    public function getGroup($userID, $friendID)
+    {
+        return User::find($userID)->groups()->OneToOne()->whereHas('members', function ($query) use ($friendID) {
+            $query->where('group_members.user_id', $friendID);
+        })->first();
     }
 }

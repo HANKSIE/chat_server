@@ -45,7 +45,8 @@ class User extends Authenticatable
 
     public function friends()
     {
-        return $this->belongsToMany(User::class, Friend::class, 'user_id', 'friend_id')->withPivot('group_id')->withTimestamps();
+        return $this->belongsToMany(User::class, Friend::class, 'user_id', 'friend_id')
+            ->using(Friend::class)->withPivot('group_id');
     }
 
     public function groups()

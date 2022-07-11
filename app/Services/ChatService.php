@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\Group;
+use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
@@ -14,8 +15,15 @@ class ChatService
 
     public function create($userID, $groupID, $body)
     {
-        if ($this->groupService->has($userID, $groupID)) {
-            return Group::find($groupID)->messages()->create(['group_id' => $groupID, 'user_id' => $userID, 'body' => $body]);
+        if (!$this->groupService->has($userID, $groupID)) {
+            return false;
         }
+
+        return DB::transaction(function () use ($groupID, $userID, $body) {
+            $message = Group::find($groupID)->messages()->create(['body' => $body]);
+            $message->user()->associate($userID);
+            $message->save();
+            return $message->fresh();
+        });
     }
 }

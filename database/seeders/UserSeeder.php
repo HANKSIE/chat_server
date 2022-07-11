@@ -34,11 +34,26 @@ class UserSeeder extends Seeder
                 $group->members()->attach($user2);
                 $user1->friends()->attach($user2, ['group_id' => $group->id]);
                 $user2->friends()->attach($user1, ['group_id' => $group->id]);
+                collect([
+                    [
+                        'user' => $user1,
+                        'body' => 'HELLO',
+                    ],
+                    [
+                        'user' => $user2,
+                        'body' => 'WORLD',
+                    ],
+                ])->each(function ($data) use ($group) {
+                    tap($group->messages()->create(['body' => $data['body']]), function ($message) use ($data) {
+                        $message->user()->associate($data['user']);
+                        $message->save();
+                    });
+                });
             });
         }
 
         $user = User::find(1);
-        $friends = User::whereBetween('id', [10, 15])->get();
+        $friends = User::whereBetween('id', [2, 20])->get();
         $friends->each(function ($friend) use ($user) {
             makeFriend($user, $friend);
         });
