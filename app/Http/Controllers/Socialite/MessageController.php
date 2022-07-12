@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Socialite;
 
+use App\Events\GroupMessage;
 use App\Http\Controllers\Controller;
 use App\Services\MessageService;
+use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
@@ -12,6 +14,18 @@ class MessageController extends Controller
     {
         $this->messageService = $messageService;
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'group_id' => ['required', 'numeric'],
+            'body' => ['required', 'string'],
+        ]);
+        $message = $this->messageService->create(auth()->user()->id, $request->group_id, $request->body);
+        broadcast(new GroupMessage($message))->toOthers();
+        return response()->json(['message' => $message]);
+    }
+
     public function simplePaginate($groupID, $perPage = 5, $keyword = '')
     {
         return $this->messageService->simplePaginate($groupID, $keyword, $perPage);

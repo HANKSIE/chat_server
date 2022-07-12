@@ -24,12 +24,16 @@ class MessageService
             $message = Group::find($groupID)->messages()->create(['body' => $body]);
             $message->user()->associate($userID);
             $message->save();
-            return $message->fresh();
+            $message->refresh();
+            $message->load('user');
+            return $message;
         });
     }
 
     public function simplePaginate($groupID, $keyword = '', $perPage = 5)
     {
-        return Message::search($keyword)->where('group_id', $groupID)->orderBy('id', 'desc')->simplePaginate($perPage);
+        $simplePaginate = Message::search($keyword)->where('group_id', $groupID)->orderBy('id', 'desc')->simplePaginate($perPage);
+        $simplePaginate->load('user');
+        return $simplePaginate;
     }
 }

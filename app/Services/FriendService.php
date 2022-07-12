@@ -86,7 +86,7 @@ class FriendService
                 unset($user->groups);
                 return [
                     'user' => $user,
-                    'group' => $group,
+                    'group_id' => $group->id,
                     'latest_message' => $latestMessage,
                 ];
             });

@@ -2,36 +2,25 @@
 
 namespace App\Events;
 
+use App\Models\Message;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class GroupMessage implements ShouldBroadcast
 {
     /**
-     * @var int|string
+     * @var Message
      */
-    public $groupID;
+    public $message;
 
-    /**
-     * @var string
-     */
-    public $body;
-
-    /**
-     * Create a new event instance.
-     *
-     * @param  \App\Models\User  $user
-     * @return void
-     */
-    public function __construct($groupID, $body)
+    public function __construct(Message $message)
     {
-        $this->groupID = $groupID;
-        $this->body = $body;
+        $this->message = $message;
     }
 
     public function broadcastOn()
     {
-        return new PresenceChannel("group.{$this->groupID}");
+        return new PresenceChannel("group.{$this->message->group_id}");
     }
 
     public function broadcastAs()
