@@ -92,11 +92,4 @@ class FriendService
             });
         });
     }
-
-    public function getGroup($userID, $friendID)
-    {
-        return User::find($userID)->groups()->OneToOne()->whereHas('members', function ($query) use ($friendID) {
-            $query->where('group_members.user_id', $friendID);
-        })->first();
-    }
 }

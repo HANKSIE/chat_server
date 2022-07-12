@@ -13,7 +13,7 @@ class DBTruncateAll extends Command
      *
      * @var string
      */
-    protected $signature = 'db:truncate-all';
+    protected $signature = 'db:clear';
 
     /**
      * The console command description.

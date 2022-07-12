@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Meilisearch;
 
 use Illuminate\Console\Command;
 use MeiliSearch\Client;
 
-class RemoveSearchableIndexes extends Command
+class RemoveIndexes extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'searchable:remove-indexes {indexes*}';
+    protected $signature = 'meilisearch:remove-indexes {indexes*}';
 
     /**
      * The console command description.
@@ -33,7 +33,7 @@ class RemoveSearchableIndexes extends Command
 
     public function handle()
     {
-        $client = new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key'));
+        $client = app(Client::class);
 
         $indexes = $this->argument('indexes');
         $this->info('start');

@@ -2,9 +2,10 @@
 namespace App\Services;
 
 use App\Models\Group;
+use App\Models\Message;
 use Illuminate\Support\Facades\DB;
 
-class ChatService
+class MessageService
 {
     private $groupService;
 
@@ -16,7 +17,7 @@ class ChatService
     public function create($userID, $groupID, $body)
     {
         if (!$this->groupService->has($userID, $groupID)) {
-            return false;
+            return null;
         }
 
         return DB::transaction(function () use ($groupID, $userID, $body) {
@@ -25,5 +26,10 @@ class ChatService
             $message->save();
             return $message->fresh();
         });
+    }
+
+    public function simplePaginate($groupID, $keyword = '', $perPage = 5)
+    {
+        return Message::search($keyword)->where('group_id', $groupID)->orderBy('id', 'desc')->simplePaginate($perPage);
     }
 }

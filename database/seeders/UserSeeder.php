@@ -37,11 +37,27 @@ class UserSeeder extends Seeder
                 collect([
                     [
                         'user' => $user1,
-                        'body' => 'HELLO',
+                        'body' => 'ONE',
                     ],
                     [
                         'user' => $user2,
-                        'body' => 'WORLD',
+                        'body' => 'TWO',
+                    ],
+                    [
+                        'user' => $user1,
+                        'body' => 'THREE',
+                    ],
+                    [
+                        'user' => $user2,
+                        'body' => 'FOUR',
+                    ],
+                    [
+                        'user' => $user1,
+                        'body' => 'FIVE',
+                    ],
+                    [
+                        'user' => $user2,
+                        'body' => 'SIX',
                     ],
                 ])->each(function ($data) use ($group) {
                     tap($group->messages()->create(['body' => $data['body']]), function ($message) use ($data) {

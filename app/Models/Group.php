@@ -48,6 +48,6 @@ class Group extends Model
 
     public function toSearchableArray()
     {
-        return ['name' => $this->name];
+        return $this->is_one_to_one ? [] : ['name' => $this->name];
     }
 }
