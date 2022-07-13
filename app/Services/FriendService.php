@@ -68,6 +68,10 @@ class FriendService
         $friendIDs = User::find($userID)->friends->map(function ($friend) {
             return $friend->id;
         })->toArray();
+        if (count($friendIDs) === 0) { // 回傳data為空的simple paginate ($friendsIDs為空search->whereIn會丟出exception)
+            return User::find($userID)->friends()->simplePaginate($perPage);
+        }
+
         $simplePaginate = User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
         $simplePaginate->load([
             'groups' => function ($query) use ($userID) {

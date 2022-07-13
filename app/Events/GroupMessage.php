@@ -3,11 +3,13 @@
 namespace App\Events;
 
 use App\Models\Message;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class GroupMessage implements ShouldBroadcast
 {
+    use InteractsWithSockets;
     /**
      * @var Message
      */
