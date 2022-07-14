@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 0; $i < 2; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $suffix = $i == 0 ? '' : $i;
             User::factory()->create([
                 'name' => "faker$suffix",

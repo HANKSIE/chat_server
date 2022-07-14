@@ -75,25 +75,27 @@ class FriendService
         $simplePaginate = User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
         $simplePaginate->load([
             'groups' => function ($query) use ($userID) {
-                $query->oneToOne()->select('groups.id')->whereHas('members', function ($query) use ($userID) {
+                $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
                     $query->where('user_id', $userID);
                 });
             },
-            'groups.latestMessage',
         ]);
         return tap($simplePaginate, function ($paginatedInstance) {
             return $paginatedInstance->getCollection()->transform(function ($user) {
                 $group = $user->groups[0];
-                $latestMessage = $group->latestMessage;
                 unset($group->pivot);
                 unset($group->latestMessage);
                 unset($user->groups);
                 return [
                     'user' => $user,
                     'group_id' => $group->id,
-                    'latest_message' => $latestMessage,
                 ];
             });
         });
+    }
+
+    public function latestContactCursorPaginate($userID, $perPage = 5)
+    {
+        return $this->groupService->latestContactCursorPaginate($userID, true, $perPage);
     }
 }

@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\Group;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -72,6 +73,30 @@ class GroupService
             $recipient->groupRequestsToMe()->where('group_id', $group->id)->delete();
             return true;
         });
+    }
+
+    public function latestContactCursorPaginate($userID, $isOneToOne = false, $perPage = 5)
+    {
+        $mids = DB::table('groups')
+            ->selectRaw('MAX(messages.id) as mid')
+            ->join('group_members', 'group_members.group_id', '=', 'groups.id')
+            ->join('messages', 'messages.group_id', '=', 'groups.id')
+            ->where([
+                'group_members.user_id' => $userID,
+                'groups.is_one_to_one' => $isOneToOne,
+            ])
+            ->groupBy('groups.id')
+            ->orderByDesc('mid')
+            ->get()->map(function ($data) {return $data->mid;});
+
+        return Message::whereIn('id', $mids)->with(
+            $isOneToOne ?
+            [
+                'group.members' => function ($query) use ($userID) {
+                    $query->where('group_members.user_id', '!=', $userID);
+                },
+            ] : 'group'
+        )->latest('id')->simplePaginate($perPage);
     }
 
 }
