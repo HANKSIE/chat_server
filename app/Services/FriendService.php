@@ -93,9 +93,4 @@ class FriendService
             });
         });
     }
-
-    public function latestContactCursorPaginate($userID, $perPage = 5)
-    {
-        return $this->groupService->latestContactCursorPaginate($userID, true, $perPage);
-    }
 }

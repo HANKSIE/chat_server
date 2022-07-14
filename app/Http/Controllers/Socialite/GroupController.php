@@ -14,6 +14,12 @@ class GroupController extends Controller
     {
         $this->groupService = $groupService;
     }
+
+    public function recentContact($isOneToOne, $perPage = 5)
+    {
+        return $this->groupService->recentContactCursorPaginate(auth()->user()->id, $isOneToOne, $perPage);
+    }
+
     public function index()
     {
         return response()->json(['groups' => $this->groupService->getAllIDs(auth()->user()->id)]);

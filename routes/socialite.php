@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Socialite\FriendController;
+use App\Http\Controllers\Socialite\GroupController;
 use App\Http\Controllers\Socialite\MessageController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,9 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('message.simple-paginate');
     });
     Route::resource('messages', MessageController::class)->only('store');
+    Route::prefix('groups')->group(function () {
+        Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
+            ->name('groups.recent-contact');
+    });
+    Route::resource('groups', GroupController::class)->except(['create', 'edit']);
 });

@@ -75,7 +75,7 @@ class GroupService
         });
     }
 
-    public function latestContactCursorPaginate($userID, $isOneToOne = false, $perPage = 5)
+    public function recentContactCursorPaginate($userID, $isOneToOne = false, $perPage = 5)
     {
         $mids = DB::table('groups')
             ->selectRaw('MAX(messages.id) as mid')

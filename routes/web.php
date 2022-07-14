@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Socialite\GroupController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,8 +17,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__ . '/auth.php';
 require __DIR__ . '/socialite.php';
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::resource('groups', GroupController::class)->except(['create', 'edit']);
+Route::middleware('auth:sanctum')->group(function () {;
     Route::get('/user', function (Request $request) {
         return response()->json(['user' => $request->user()]);
     });
