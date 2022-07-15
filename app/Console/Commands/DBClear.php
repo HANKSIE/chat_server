@@ -6,14 +6,14 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class DBTruncateAll extends Command
+class DBClear extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'db:clear';
+    protected $signature = 'db:clear {--seed} {--reimport}';
 
     /**
      * The console command description.
@@ -46,5 +46,11 @@ class DBTruncateAll extends Command
         }
         Schema::enableForeignKeyConstraints();
         $this->info('finish');
+        if ($this->option('seed')) {
+            $this->call('db:seed');
+        }
+        if ($this->option('reimport')) {
+            $this->call('meilisearch:reimport');
+        }
     }
 }

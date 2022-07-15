@@ -24,9 +24,13 @@ class MessageService
             $message = Group::find($groupID)->messages()->create(['body' => $body]);
             $message->user()->associate($userID);
             $message->save();
-            $message->refresh();
-            $message->load('user');
-            return $message;
+            return $message->fresh()->load(
+                $message->group->is_one_to_one ?
+                [
+                    'user',
+                    'group.members',
+                ] : 'user'
+            );
         });
     }
 

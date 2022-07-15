@@ -21,16 +21,6 @@ class Initialize extends Command
      */
     protected $description = 'init meilisearch setting.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function handle()
     {
         $client = app(Client::class);

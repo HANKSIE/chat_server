@@ -20,4 +20,5 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('groups.recent-contact');
     });
     Route::resource('groups', GroupController::class)->except(['create', 'edit']);
+    Route::get('users/search/{perPage}/{keyword?}', [FriendController::class, 'usersSimplePaginate']);
 });

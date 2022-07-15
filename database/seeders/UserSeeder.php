@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i <= 5; $i++) {
             $suffix = $i == 0 ? '' : $i;
             User::factory()->create([
                 'name' => "faker$suffix",
@@ -25,6 +25,17 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('iamfaker'),
             ]);
         }
+
+        User::factory()->create([
+            'name' => "hanksie",
+            'email' => "hanksie@gmail.com",
+            'password' => Hash::make('iamfaker'),
+        ]);
+        User::factory()->create([
+            'name' => "hook",
+            'email' => "hook@gmail.com",
+            'password' => Hash::make('iamfaker'),
+        ]);
 
         function makeFriend($user1, $user2)
         {
@@ -34,34 +45,9 @@ class UserSeeder extends Seeder
                 $group->members()->attach($user2);
                 $user1->friends()->attach($user2, ['group_id' => $group->id]);
                 $user2->friends()->attach($user1, ['group_id' => $group->id]);
-                collect([
-                    [
-                        'user' => $user1,
-                        'body' => 'ONE',
-                    ],
-                    [
-                        'user' => $user2,
-                        'body' => 'TWO',
-                    ],
-                    [
-                        'user' => $user1,
-                        'body' => 'THREE',
-                    ],
-                    [
-                        'user' => $user2,
-                        'body' => 'FOUR',
-                    ],
-                    [
-                        'user' => $user1,
-                        'body' => 'FIVE',
-                    ],
-                    [
-                        'user' => $user2,
-                        'body' => 'SIX',
-                    ],
-                ])->each(function ($data) use ($group) {
-                    tap($group->messages()->create(['body' => $data['body']]), function ($message) use ($data) {
-                        $message->user()->associate($data['user']);
+                collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])->each(function ($data) use ($group, $user2) {
+                    tap($group->messages()->create(['body' => $data]), function ($message) use ($user2) {
+                        $message->user()->associate($user2);
                         $message->save();
                     });
                 });
@@ -69,7 +55,7 @@ class UserSeeder extends Seeder
         }
 
         $user = User::find(1);
-        $friends = User::whereBetween('id', [2, 20])->get();
+        $friends = User::whereBetween('id', [2, 6])->get();
         $friends->each(function ($friend) use ($user) {
             makeFriend($user, $friend);
         });

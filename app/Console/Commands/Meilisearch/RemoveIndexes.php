@@ -21,16 +21,6 @@ class RemoveIndexes extends Command
      */
     protected $description = 'Remove Meilisearch Searchable Indexes.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function handle()
     {
         $client = app(Client::class);

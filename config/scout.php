@@ -147,6 +147,11 @@ return [
                 'updateSortableAttributes' => ['id'],
             ],
         ],
+        'imports' => [
+            \App\Models\User::class,
+            \App\Models\Message::class,
+            \App\Models\Group::class,
+        ],
     ],
 
 ];

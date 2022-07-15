@@ -65,21 +65,20 @@ class FriendService
 
     public function simplePaginate($userID, $keyword = '', $perPage = 5)
     {
-        $friendIDs = User::find($userID)->friends->map(function ($friend) {
-            return $friend->id;
-        })->toArray();
+        $friendIDs = $this->getAllFriendIDs($userID);
         if (count($friendIDs) === 0) { // 回傳data為空的simple paginate ($friendsIDs為空search->whereIn會丟出exception)
             return User::find($userID)->friends()->simplePaginate($perPage);
         }
 
-        $simplePaginate = User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
-        $simplePaginate->load([
-            'groups' => function ($query) use ($userID) {
-                $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
-                    $query->where('user_id', $userID);
-                });
-            },
-        ]);
+        $simplePaginate = User::search($keyword)->query(function ($query) use ($userID) {
+            $query->with([
+                'groups' => function ($query) use ($userID) {
+                    $query->oneToOne()->with(['members' => function ($query) use ($userID) {
+                        $query->where('user_id', $userID);
+                    }]);
+                },
+            ]);
+        })->whereIn('id', $friendIDs)->simplePaginate($perPage);
         return tap($simplePaginate, function ($paginatedInstance) {
             return $paginatedInstance->getCollection()->transform(function ($user) {
                 $group = $user->groups[0];
@@ -92,5 +91,26 @@ class FriendService
                 ];
             });
         });
+    }
+
+    public function usersSimplePaginate($userID, $keyword = '', $perPage = 5)
+    {
+        $friendIDs = collect($this->getAllFriendIDs($userID));
+        return tap(User::search($keyword)->simplePaginate($perPage), function ($simplePaginate) use ($friendIDs, $userID) {
+            return $simplePaginate->getCollection()->transform(function ($user) use ($friendIDs, $userID) {
+                return [
+                    'user' => $user,
+                    'is_friend' => $friendIDs->contains($user->id),
+                    'is_me' => $user->id === $userID,
+                ];
+            });
+        });
+    }
+
+    private function getAllFriendIDs($userID)
+    {
+        return User::find($userID)->friends()->select('friends.friend_id')->get()->map(function ($data) {
+            return $data->friend_id;
+        })->toArray();
     }
 }
