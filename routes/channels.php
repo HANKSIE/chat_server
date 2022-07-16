@@ -1,6 +1,7 @@
 <?php
 
 use App\Broadcasting\GroupChannel;
+use App\Broadcasting\UserChannel;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -15,3 +16,5 @@ use Illuminate\Support\Facades\Broadcast;
  */
 
 Broadcast::channel('group.{groupID}', GroupChannel::class);
+
+Broadcast::channel('user.{userID}', UserChannel::class);

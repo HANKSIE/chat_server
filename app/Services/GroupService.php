@@ -99,4 +99,10 @@ class GroupService
         )->latest('id')->simplePaginate($perPage);
     }
 
+    public function getOneToOneGroup($user1ID, $user2ID)
+    {
+        return User::find($user1ID)->groups()->oneToOne()->whereHas('members', function ($query) use ($user2ID) {
+            $query->where('user_id', $user2ID);
+        })->first();
+    }
 }

@@ -39,10 +39,10 @@ class FriendService
         }
 
         return DB::transaction(function () use ($sender, $recipient, $req) {
-            $this->beFriend($sender->id, $recipient->id);
+            $group = $this->beFriend($sender->id, $recipient->id);
             $sender = $req->sender;
             $req->delete();
-            return $sender;
+            return $group;
         });
     }
 
@@ -56,16 +56,18 @@ class FriendService
             $this->groupService->join($sender->id, $group->id);
             $sender->friends()->attach($recipient, ['group_id' => $group->id]);
             $recipient->friends()->attach($sender, ['group_id' => $group->id]);
+            return $group;
         });
     }
 
-    public function unFriend($senderID, $recipientID)
+    public function unFriend($user1ID, $user2ID)
     {
-        $sender = User::find($senderID);
-        $recipient = User::find($recipientID);
-        return DB::transaction(function () use ($sender, $recipient) {
-            $sender->friends()->detach($recipient->id);
-            $recipient->friends()->detach($sender->id);
+        $user1 = User::find($user1ID);
+        $user2 = User::find($user2ID);
+        return DB::transaction(function () use ($user1, $user2) {
+            $user1->friends()->detach($user2->id);
+            $user2->friends()->detach($user1->id);
+            $this->groupService->getOneToOneGroup($user1->id, $user2->id)->delete();
         });
     }
 
@@ -76,15 +78,14 @@ class FriendService
             return User::find($userID)->friends()->simplePaginate($perPage);
         }
 
-        $simplePaginate = User::search($keyword)->query(function ($query) use ($userID) {
-            $query->with([
-                'groups' => function ($query) use ($userID) {
-                    $query->oneToOne()->with(['members' => function ($query) use ($userID) {
-                        $query->where('user_id', $userID);
-                    }]);
-                },
-            ]);
-        })->whereIn('id', $friendIDs)->simplePaginate($perPage);
+        $simplePaginate = User::search($keyword)->whereIn('id', $friendIDs)->simplePaginate($perPage);
+
+        $simplePaginate->load(['groups' => function ($query) use ($userID) {
+            $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
+                $query->where('user_id', $userID);
+            });
+        }]);
+
         return tap($simplePaginate, function ($paginatedInstance) {
             return $paginatedInstance->getCollection()->transform(function ($user) {
                 $group = $user->groups[0];

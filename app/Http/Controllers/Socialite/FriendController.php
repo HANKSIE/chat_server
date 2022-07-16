@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Socialite;
 
+use App\Events\BeFriend;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\FriendService;
@@ -34,8 +35,9 @@ class FriendController extends Controller
 
     public function acceptRequest(Request $request)
     {
-        // broadcast for echo join
-        return response()->json(['sender' => $this->friendService->acceptFriendRequest($request->sender_id, auth()->user()->id)]);
+        $group = $this->friendService->acceptFriendRequest($request->sender_id, auth()->user()->id);
+        broadcast(new BeFriend(auth()->user()->id, $request->sender_id, $group->id))->toOthers();
+        return response()->json(['group_id' => $group->id]);
     }
 
     public function denyRequest(Request $request)
