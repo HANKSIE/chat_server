@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Group;
 use App\Models\User;
+use Ds\Set;
 use Illuminate\Support\Facades\DB;
 
 class FriendService
@@ -16,12 +17,16 @@ class FriendService
 
     public function createFriendRequest($senderID, $recipientID)
     {
-        return User::find($senderID)->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $recipientID]);
+        $req = User::find($senderID)->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $recipientID]);
+        return $req->recipient;
     }
 
     public function denyFriendRequest($senderID, $recipientID)
     {
-        return User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->delete();
+        $req = User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->first();
+        $sender = $req->sender;
+        $req->delete();
+        return $sender;
     }
 
     public function acceptFriendRequest($senderID, $recipientID)
@@ -30,13 +35,14 @@ class FriendService
         $recipient = User::find($recipientID);
         $req = $recipient->friendRequestsToMe()->where(['sender_id' => $sender->id])->first();
         if (is_null($req)) {
-            return false;
+            return null;
         }
 
         return DB::transaction(function () use ($sender, $recipient, $req) {
             $this->beFriend($sender->id, $recipient->id);
+            $sender = $req->sender;
             $req->delete();
-            return true;
+            return $sender;
         });
     }
 
@@ -95,13 +101,25 @@ class FriendService
 
     public function usersSimplePaginate($userID, $keyword = '', $perPage = 5)
     {
-        $friendIDs = collect($this->getAllFriendIDs($userID));
-        return tap(User::search($keyword)->simplePaginate($perPage), function ($simplePaginate) use ($friendIDs, $userID) {
-            return $simplePaginate->getCollection()->transform(function ($user) use ($friendIDs, $userID) {
+        $senderIDs = new Set(User::find($userID)->friendRequestsToMe->map(function ($req) {return $req->sender_id;}));
+        $recipientIDs = new Set(User::find($userID)->friendRequestsFromMe->map(function ($req) {return $req->recipient_id;}));
+        $friendIDs = new Set($this->getAllFriendIDs($userID));
+
+        return tap(User::search($keyword)->simplePaginate($perPage), function ($simplePaginate) use ($friendIDs, $senderIDs, $recipientIDs, $userID) {
+            return $simplePaginate->getCollection()->transform(function ($user) use ($friendIDs, $senderIDs, $recipientIDs, $userID) {
+                $status = 0; // stranger
+                if ($user->id === $userID) { // me
+                    $status = 1;
+                } else if ($friendIDs->contains($user->id)) { // friend
+                    $status = 2;
+                } else if ($senderIDs->contains($user->id)) { // inviting the user
+                    $status = 3;
+                } else if ($recipientIDs->contains($user->id)) { // the user invite me
+                    $status = 4;
+                }
                 return [
                     'user' => $user,
-                    'is_friend' => $friendIDs->contains($user->id),
-                    'is_me' => $user->id === $userID,
+                    'status' => $status,
                 ];
             });
         });

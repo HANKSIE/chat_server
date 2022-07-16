@@ -11,8 +11,10 @@ class FriendRequest extends Model
 
     protected $fillable = [
         'sender_id',
-        'recipient_id'
+        'recipient_id',
     ];
+
+    protected $with = ['sender', 'recipient'];
 
     public function sender()
     {

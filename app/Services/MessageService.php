@@ -21,10 +21,8 @@ class MessageService
         }
 
         return DB::transaction(function () use ($groupID, $userID, $body) {
-            $message = Group::find($groupID)->messages()->create(['body' => $body]);
-            $message->user()->associate($userID);
-            $message->save();
-            return $message->fresh()->load(
+            $message = Group::find($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
+            return $message->load(
                 $message->group->is_one_to_one ?
                 [
                     'user',

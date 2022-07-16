@@ -14,6 +14,7 @@
         "laravel/scout": "^9.4",
         "laravel/tinker": "^2.5",
         "meilisearch/meilisearch-php": "^0.21.0",
+        "php-ds/php-ds": "^1.4",
         "predis/predis": "^2.0",
         "pusher/pusher-php-server": "^7.0"
     },
