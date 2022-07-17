@@ -34,8 +34,8 @@ class FriendController extends Controller
             $group = $this->friendService->acceptFriendRequest($recipientID, $userID);
             return response()->json(['be_friend' => true, 'group_id' => $group->id]);
         }
-
-        return response()->json(['be_friend' => false, 'recipient' => $this->friendService->createFriendRequest(auth()->user()->id, $request->recipient_id)]);
+        $this->friendService->createFriendRequest(auth()->user()->id, $request->recipient_id);
+        return response()->json(['be_friend' => false]);
     }
 
     public function acceptRequest(Request $request)
@@ -48,7 +48,8 @@ class FriendController extends Controller
 
     public function denyRequest(Request $request)
     {
-        return response()->json(['sender' => response()->json($this->friendService->denyFriendRequest($request->sender_id, auth()->user()->id))]);
+        $this->friendService->denyFriendRequest($request->sender_id, auth()->user()->id);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 
     public function unfriend(Request $request)

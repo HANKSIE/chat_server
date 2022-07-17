@@ -18,15 +18,13 @@ class FriendService
     public function createFriendRequest($senderID, $recipientID)
     {
         $req = User::find($senderID)->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $recipientID]);
-        return $req->recipient;
+        return $req;
     }
 
     public function denyFriendRequest($senderID, $recipientID)
     {
         $req = User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->first();
-        $sender = $req->sender;
-        $req->delete();
-        return $sender;
+        return $req->delete();
     }
 
     public function acceptFriendRequest($senderID, $recipientID)
