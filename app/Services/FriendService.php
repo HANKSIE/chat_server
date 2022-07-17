@@ -1,9 +1,9 @@
 <?php
 namespace App\Services;
 
+use App\Events\BeFriend;
 use App\Models\Group;
 use App\Models\User;
-use Ds\Set;
 use Illuminate\Support\Facades\DB;
 
 class FriendService
@@ -38,12 +38,15 @@ class FriendService
             return null;
         }
 
-        return DB::transaction(function () use ($sender, $recipient, $req) {
+        $group = DB::transaction(function () use ($sender, $recipient, $req) {
             $group = $this->beFriend($sender->id, $recipient->id);
             $sender = $req->sender;
             $req->delete();
             return $group;
         });
+
+        broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
+        return $group;
     }
 
     public function beFriend($senderID, $recipientID)
@@ -102,25 +105,30 @@ class FriendService
 
     public function usersSimplePaginate($userID, $keyword = '', $perPage = 5)
     {
-        $senderIDs = new Set(User::find($userID)->friendRequestsToMe->map(function ($req) {return $req->sender_id;}));
-        $recipientIDs = new Set(User::find($userID)->friendRequestsFromMe->map(function ($req) {return $req->recipient_id;}));
-        $friendIDs = new Set($this->getAllFriendIDs($userID));
-
-        return tap(User::search($keyword)->simplePaginate($perPage), function ($simplePaginate) use ($friendIDs, $senderIDs, $recipientIDs, $userID) {
-            return $simplePaginate->getCollection()->transform(function ($user) use ($friendIDs, $senderIDs, $recipientIDs, $userID) {
-                $status = 0; // stranger
-                if ($user->id === $userID) { // me
-                    $status = 1;
-                } else if ($friendIDs->contains($user->id)) { // friend
-                    $status = 2;
-                } else if ($senderIDs->contains($user->id)) { // inviting the user
-                    $status = 3;
-                } else if ($recipientIDs->contains($user->id)) { // the user invite me
-                    $status = 4;
-                }
+        $simplePaginate = User::search($keyword)->simplePaginate($perPage);
+        $ids = $simplePaginate->getCollection()->map(function ($user) {return $user->id;});
+        $statuses = DB::table('users')->selectRaw("(CASE
+            WHEN users.id = ? THEN 1
+            WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
+            THEN 2
+            WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = users.id AND friend_requests.recipient_id = ?)
+            THEN 3
+            WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = ? AND friend_requests.recipient_id = users.id)
+            THEN 4
+            ELSE 0
+            END) AS status
+        ",
+            collect()->range(1, 4)->map(function () use ($userID) {
+                return $userID;
+            })->toArray()
+        )->whereIn('id', $ids)->orderBy('id')->get()->map(function ($data) {
+            return $data->status;
+        });
+        return tap($simplePaginate, function ($simplePaginate) use ($statuses) {
+            return $simplePaginate->getCollection()->transform(function ($user, $i) use ($statuses) {
                 return [
                     'user' => $user,
-                    'status' => $status,
+                    'status' => $statuses[$i],
                 ];
             });
         });
@@ -131,5 +139,10 @@ class FriendService
         return User::find($userID)->friends()->select('friends.friend_id')->get()->map(function ($data) {
             return $data->friend_id;
         })->toArray();
+    }
+
+    public function hasRequest($senderID, $recipientID)
+    {
+        return User::find($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
     }
 }

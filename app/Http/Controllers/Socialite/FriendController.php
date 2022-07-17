@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Socialite;
 
-use App\Events\BeFriend;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\FriendService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -30,13 +28,21 @@ class FriendController extends Controller
 
     public function sendRequest(Request $request)
     {
-        return response()->json(['recipient' => $this->friendService->createFriendRequest(auth()->user()->id, $request->recipient_id)]);
+        $userID = auth()->user()->id;
+        $recipientID = $request->recipient_id;
+        if ($this->friendService->hasRequest($recipientID, $userID)) {
+            $group = $this->friendService->acceptFriendRequest($recipientID, $userID);
+            return response()->json(['be_friend' => true, 'group_id' => $group->id]);
+        }
+
+        return response()->json(['be_friend' => false, 'recipient' => $this->friendService->createFriendRequest(auth()->user()->id, $request->recipient_id)]);
     }
 
     public function acceptRequest(Request $request)
     {
-        $group = $this->friendService->acceptFriendRequest($request->sender_id, auth()->user()->id);
-        broadcast(new BeFriend(auth()->user()->id, $request->sender_id, $group->id))->toOthers();
+        $userID = auth()->user()->id;
+        $senderID = $request->sender_id;
+        $group = $this->friendService->acceptFriendRequest($senderID, $userID);
         return response()->json(['group_id' => $group->id]);
     }
 

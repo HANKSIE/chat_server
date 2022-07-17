@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Socialite;
 
-use App\Events\GroupMessage;
 use App\Http\Controllers\Controller;
 use App\Services\MessageService;
 use Illuminate\Http\Request;
@@ -22,7 +21,6 @@ class MessageController extends Controller
             'body' => ['required', 'string'],
         ]);
         $message = $this->messageService->create(auth()->user()->id, $request->group_id, $request->body);
-        broadcast(new GroupMessage($message))->toOthers();
         return response()->json(['message' => $message]);
     }
 
