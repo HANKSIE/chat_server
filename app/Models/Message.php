@@ -13,7 +13,7 @@ class Message extends Model
     protected $fillable = ['body', 'user_id'];
 
     protected $casts = [
-        'created_at' => 'datetime:Y-m-d h:m',
+        'created_at' => 'datetime:m-d h:m',
     ];
 
     public function user()

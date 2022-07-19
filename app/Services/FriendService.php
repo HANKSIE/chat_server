@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Events\BeFriend;
+use App\Events\UnFriend;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,6 @@ class FriendService
             return $group;
         });
 
-        broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
         return $group;
     }
 
@@ -57,6 +57,7 @@ class FriendService
             $this->groupService->join($sender->id, $group->id);
             $sender->friends()->attach($recipient, ['group_id' => $group->id]);
             $recipient->friends()->attach($sender, ['group_id' => $group->id]);
+            broadcast(new BeFriend($sender->id, $recipient->id, $group->id))->toOthers();
             return $group;
         });
     }
@@ -65,10 +66,12 @@ class FriendService
     {
         $user1 = User::find($user1ID);
         $user2 = User::find($user2ID);
-        return DB::transaction(function () use ($user1, $user2) {
+        DB::transaction(function () use ($user1, $user2) {
             $user1->friends()->detach($user2->id);
             $user2->friends()->detach($user1->id);
-            $this->groupService->getOneToOneGroup($user1->id, $user2->id)->delete();
+            $group = $this->groupService->getOneToOneGroup($user1->id, $user2->id);
+            $group->delete();
+            broadcast(new UnFriend($user1->id, $user2->id, $group->id))->toOthers();
         });
     }
 
@@ -142,5 +145,23 @@ class FriendService
     public function hasRequest($senderID, $recipientID)
     {
         return User::find($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
+    }
+
+    public function requestsToMeCursorPaginate($userID, $perPage = 5)
+    {
+        return tap(User::find($userID)->friendRequestsToMe()->cursorPaginate($perPage), function ($cursorPaginate) {
+            $cursorPaginate->getCollection()->transform(function ($req) {
+                return $req->sender;
+            });
+        });
+    }
+
+    public function requestsFromMeCursorPaginate($userID, $perPage = 5)
+    {
+        return tap(User::find($userID)->friendRequestsFromMe()->cursorPaginate($perPage), function ($cursorPaginate) {
+            $cursorPaginate->getCollection()->transform(function ($req) {
+                return $req->recipient;
+            });
+        });
     }
 }

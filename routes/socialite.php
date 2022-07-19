@@ -15,6 +15,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('accept', [FriendController::class, 'acceptRequest'])->name('friend.request.accept');
             Route::post('deny', [FriendController::class, 'denyRequest'])->name('friend.request.deny');
         });
+        Route::prefix('requests')->group(function () {
+            Route::get('to/{perPage}', [FriendController::class, 'requestsToMe'])->name('friend.request.to');
+            Route::get('from/{perPage}', [FriendController::class, 'requestsFromMe'])->name('friend.request.from');
+        });
     });
     Route::prefix('messages')->group(function () {
         Route::get('search/{groupID}/{perPage?}/{keyword?}', [MessageController::class, 'simplePaginate'])

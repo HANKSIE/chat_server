@@ -58,4 +58,14 @@ class FriendController extends Controller
         $this->friendService->unfriend(auth()->user()->id, $request->friend_id);
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
+
+    public function requestsToMe($perPage)
+    {
+        return $this->friendService->requestsToMeCursorPaginate(auth()->user()->id, $perPage);
+    }
+
+    public function requestsFromMe($perPage)
+    {
+        return $this->friendService->requestsFromMeCursorPaginate(auth()->user()->id, $perPage);
+    }
 }

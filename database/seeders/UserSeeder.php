@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 0; $i <= 5; $i++) {
+        for ($i = 0; $i <= 15; $i++) {
             $suffix = $i == 0 ? '' : $i;
             User::factory()->create([
                 'name' => "faker$suffix",
@@ -55,7 +55,7 @@ class UserSeeder extends Seeder
         }
 
         $user = User::find(1);
-        $friends = User::whereBetween('id', [2, 6])->get();
+        $friends = User::whereBetween('id', [2, 15])->get();
         $friends->each(function ($friend) use ($user) {
             makeFriend($user, $friend);
         });
