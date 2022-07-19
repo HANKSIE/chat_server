@@ -5,10 +5,12 @@ namespace App\Events;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Queue\InteractsWithQueue;
 
 class BeFriend implements ShouldBroadcast
 {
-    use InteractsWithSockets;
+    use InteractsWithSockets, InteractsWithQueue;
+    public $afterCommit = true;
 
     private $userID;
     private $friendID;

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\FriendRequest;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -46,9 +47,10 @@ class UserSeeder extends Seeder
         }
 
         $user = User::find(1);
-        $friends = User::whereBetween('id', [2, 3])->get();
+        $friends = User::whereBetween('id', [15, 16])->get();
         $friends->each(function ($friend) use ($user) {
             makeFriend($user, $friend);
         });
+        FriendRequest::create(['sender_id' => 17, 'recipient_id' => 1]);
     }
 }

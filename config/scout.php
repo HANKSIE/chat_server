@@ -136,6 +136,7 @@ return [
         'key' => env('MEILISEARCH_KEY', null),
         'settings' => [
             \App\Models\User::class => [
+                'updateFilterableAttributes' => ['id'],
                 'updateSearchableAttributes' => ['name'],
             ],
             \App\Models\Message::class => [

@@ -38,8 +38,13 @@ class MessageService
 
     public function simplePaginate($groupID, $keyword = '', $perPage = 5)
     {
-        $simplePaginate = Message::search($keyword)->where('group_id', $groupID)->orderBy('id', 'desc')->simplePaginate($perPage);
-        $simplePaginate->load('user');
+        $simplePaginate = Message::search($keyword)
+            ->where('group_id', $groupID)
+            ->query(function ($query) {
+                $query->with('user');
+            })
+            ->orderBy('id', 'desc')
+            ->simplePaginate($perPage);
         return $simplePaginate;
     }
 }

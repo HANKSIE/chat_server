@@ -13,7 +13,7 @@ class DBClear extends Command
      *
      * @var string
      */
-    protected $signature = 'db:clear {--seed} {--import}';
+    protected $signature = 'db:clear {--seed}';
 
     /**
      * The console command description.
@@ -48,9 +48,6 @@ class DBClear extends Command
         $this->info('finish');
         if ($this->option('seed')) {
             $this->call('db:seed');
-        }
-        if ($this->option('import')) {
-            $this->call('meilisearch:import --flush');
         }
     }
 }

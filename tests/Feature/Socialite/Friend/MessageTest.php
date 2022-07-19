@@ -27,7 +27,7 @@ class MessageTest extends TestCase
     {
         Event::fake();
         $user1 = User::find(1);
-        $user2 = User::find(2);
+        $user2 = User::find(15);
         $group = $user1->groups()->oneToOne()->whereHas('members', function ($query) use ($user2) {
             $query->where('user_id', $user2->id);
         })->first();
@@ -44,9 +44,10 @@ class MessageTest extends TestCase
                     ->etc();
             });
         $messageID = $res->getOriginalContent()['message']['id'];
+
         Event::assertDispatched(function (GroupMessage $event) use ($messageID) {
             return $event->message->id === $messageID;
         });
-        $this->assertDatabaseHas('messages', ['group_id' => $group->id, 'body' => $body, 'user_id' => $user1->id]);
+        $this->assertDatabaseHas('messages', ['id' => $messageID, 'group_id' => $group->id, 'body' => $body, 'user_id' => $user1->id]);
     }
 }

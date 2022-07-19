@@ -6,10 +6,12 @@ use App\Models\Message;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Queue\InteractsWithQueue;
 
 class GroupMessage implements ShouldBroadcast
 {
-    use InteractsWithSockets;
+    use InteractsWithSockets, InteractsWithQueue;
+    public $afterCommit = true;
     /**
      * @var Message
      */
