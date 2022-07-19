@@ -68,4 +68,10 @@ class FriendController extends Controller
     {
         return $this->friendService->requestsFromMeCursorPaginate(auth()->user()->id, $perPage);
     }
+
+    public function revokeRequest(Request $request)
+    {
+        $this->friendService->denyFriendRequest(auth()->user()->id, $request->recipient_id);
+        return response()->json([], Response::HTTP_NO_CONTENT);
+    }
 }

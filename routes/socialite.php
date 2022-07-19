@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('send', [FriendController::class, 'sendRequest'])->name('friend.request.send');
             Route::post('accept', [FriendController::class, 'acceptRequest'])->name('friend.request.accept');
             Route::post('deny', [FriendController::class, 'denyRequest'])->name('friend.request.deny');
+            Route::delete('revoke', [FriendController::class, 'revokeRequest'])->name('friend.request.revoke');
         });
         Route::prefix('requests')->group(function () {
             Route::get('receive/{perPage}', [FriendController::class, 'requestsToMe'])->name('friend.request.to');

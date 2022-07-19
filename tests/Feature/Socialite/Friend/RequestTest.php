@@ -76,4 +76,16 @@ class RequestTest extends TestCase
             ->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseMissing('friend_requests', $reqData);
     }
+
+    public function test_revoke_friend_request()
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $reqData = ['sender_id' => $user1->id, 'recipient_id' => $user2->id];
+        FriendRequest::create($reqData);
+        Sanctum::actingAs($user1);
+        $this->deleteJson(route('friend.request.revoke'), ['recipient_id' => $user2->id])
+            ->assertStatus(Response::HTTP_NO_CONTENT);
+        $this->assertDatabaseMissing('friend_requests', $reqData);
+    }
 }
