@@ -138,9 +138,6 @@ return [
             \App\Models\User::class => [
                 'updateSearchableAttributes' => ['name'],
             ],
-            \App\Models\Group::class => [
-                'updateSearchableAttributes' => ['name'],
-            ],
             \App\Models\Message::class => [
                 'updateFilterableAttributes' => ['group_id'],
                 'updateSearchableAttributes' => ['body'],
@@ -150,7 +147,6 @@ return [
         'imports' => [
             \App\Models\User::class,
             \App\Models\Message::class,
-            \App\Models\Group::class,
         ],
     ],
 

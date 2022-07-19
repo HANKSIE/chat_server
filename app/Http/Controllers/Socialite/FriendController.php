@@ -21,9 +21,9 @@ class FriendController extends Controller
         return response()->json($this->friendService->simplePaginate(auth()->user()->id, $keyword, $perPage));
     }
 
-    public function usersSimplePaginate($perPage = 5, $keyword = '')
+    public function findNewFriendSimplePaginate($perPage = 5, $keyword = '')
     {
-        return response()->json($this->friendService->usersSimplePaginate(auth()->user()->id, $keyword, $perPage));
+        return response()->json($this->friendService->findNewFriendSimplePaginate(auth()->user()->id, $keyword, $perPage));
     }
 
     public function sendRequest(Request $request)

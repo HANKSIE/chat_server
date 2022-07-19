@@ -16,8 +16,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('deny', [FriendController::class, 'denyRequest'])->name('friend.request.deny');
         });
         Route::prefix('requests')->group(function () {
-            Route::get('to/{perPage}', [FriendController::class, 'requestsToMe'])->name('friend.request.to');
-            Route::get('from/{perPage}', [FriendController::class, 'requestsFromMe'])->name('friend.request.from');
+            Route::get('receive/{perPage}', [FriendController::class, 'requestsToMe'])->name('friend.request.to');
+            Route::get('sent/{perPage}', [FriendController::class, 'requestsFromMe'])->name('friend.request.from');
         });
     });
     Route::prefix('messages')->group(function () {
@@ -29,6 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
             ->name('groups.recent-contact');
     });
-    Route::resource('groups', GroupController::class)->except(['create', 'edit']);
-    Route::get('users/search/{perPage}/{keyword?}', [FriendController::class, 'usersSimplePaginate']);
+    Route::resource('groups', GroupController::class)->only(['index']);
+    Route::get('users/search/{perPage}/{keyword?}', [FriendController::class, 'findNewFriendSimplePaginate']);
 });

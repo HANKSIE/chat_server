@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Sti3bas\ScoutArray\Facades\Search;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -20,7 +21,11 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
         $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
         $user = User::firstWhere('email', 'test@example.com');
+        Search::assertContainsIn('users', $user);
+        Search::assertSynced($user);
+
         $response->assertOk()->assertJson(function (AssertableJson $json) use ($user) {
             $json->has('user', function (AssertableJson $json) use ($user) {
                 $json->whereAll([
@@ -30,6 +35,5 @@ class RegistrationTest extends TestCase
                 ])->etc();
             });
         });
-
     }
 }

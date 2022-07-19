@@ -104,7 +104,7 @@ class FriendService
         });
     }
 
-    public function usersSimplePaginate($userID, $keyword = '', $perPage = 5)
+    public function findNewFriendSimplePaginate($userID, $keyword = '', $perPage = 5)
     {
         $simplePaginate = User::search($keyword)->simplePaginate($perPage);
         $ids = $simplePaginate->getCollection()->map(function ($user) {return $user->id;});

@@ -17,26 +17,17 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 0; $i <= 15; $i++) {
-            $suffix = $i == 0 ? '' : $i;
-            User::factory()->create([
-                'name' => "faker$suffix",
-                'email' => "iamfaker$suffix@gmail.com",
-                'password' => Hash::make('iamfaker'),
-            ]);
-        }
-
+        User::factory()->create([
+            'name' => "faker",
+            'email' => "iamfaker@gmail.com",
+            'password' => Hash::make('iamfaker'),
+        ]);
+        User::factory()->count(15)->create();
         User::factory()->create([
             'name' => "hanksie",
             'email' => "hanksie@gmail.com",
             'password' => Hash::make('iamfaker'),
         ]);
-        User::factory()->create([
-            'name' => "hook",
-            'email' => "hook@gmail.com",
-            'password' => Hash::make('iamfaker'),
-        ]);
-
         function makeFriend($user1, $user2)
         {
             DB::transaction(function () use ($user1, $user2) {
@@ -55,7 +46,7 @@ class UserSeeder extends Seeder
         }
 
         $user = User::find(1);
-        $friends = User::whereBetween('id', [2, 15])->get();
+        $friends = User::whereBetween('id', [2, 3])->get();
         $friends->each(function ($friend) use ($user) {
             makeFriend($user, $friend);
         });
