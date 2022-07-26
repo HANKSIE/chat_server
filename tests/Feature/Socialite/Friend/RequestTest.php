@@ -55,13 +55,16 @@ class RequestTest extends TestCase
         $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
         FriendRequest::create($reqData);
         Sanctum::actingAs($user1);
-        $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id])
+        $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id])
             ->assertOk()->assertJson(function (AssertableJson $json) {
             $json->has('group_id');
         });
+        $groupID = $res->getOriginalContent()['group_id'];
         $this->assertDatabaseMissing('friend_requests', $reqData);
         $this->assertDatabaseHas('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
         $this->assertDatabaseHas('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $groupID, 'count' => 0]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $groupID, 'count' => 0]);
         Event::assertDispatched(BeFriend::class);
     }
 

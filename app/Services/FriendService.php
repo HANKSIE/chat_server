@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Events\BeFriend;
 use App\Events\UnFriend;
 use App\Models\Group;
+use App\Models\MessageRead;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -55,6 +56,8 @@ class FriendService
             $group = Group::create(['is_one_to_one' => true]);
             $this->groupService->join($recipient->id, $group->id);
             $this->groupService->join($sender->id, $group->id);
+            MessageRead::create(['user_id' => $sender->id, 'group_id' => $group->id]);
+            MessageRead::create(['user_id' => $recipient->id, 'group_id' => $group->id]);
             $sender->friends()->attach($recipient, ['group_id' => $group->id]);
             $recipient->friends()->attach($sender, ['group_id' => $group->id]);
             broadcast(new BeFriend($sender->id, $recipient->id, $group->id))->toOthers();

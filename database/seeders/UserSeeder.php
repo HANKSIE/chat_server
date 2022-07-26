@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\FriendRequest;
 use App\Models\Group;
+use App\Models\MessageRead;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,8 @@ class UserSeeder extends Seeder
                 $group = Group::create(['is_one_to_one' => true]);
                 $group->members()->attach($user1);
                 $group->members()->attach($user2);
+                MessageRead::create(['user_id' => $user1->id, 'group_id' => $group->id]);
+                MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id]);
                 $user1->friends()->attach($user2, ['group_id' => $group->id]);
                 $user2->friends()->attach($user1, ['group_id' => $group->id]);
                 collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])->each(function ($data) use ($group, $user2) {

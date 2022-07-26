@@ -77,8 +77,17 @@ class GroupService
 
     public function recentContactCursorPaginate($userID, $isOneToOne = false, $perPage = 5)
     {
-        $mids = DB::table('groups')
-            ->selectRaw('MAX(messages.id) as mid')
+        $data = DB::table('groups')
+            ->selectRaw(
+                "MAX(messages.id) as mid,
+                messages.group_id as gid,
+                (
+                    SELECT (SUM(CASE WHEN messages.group_id = gid THEN 1 ELSE 0 END) - message_read.count) as unread
+                    FROM messages
+                    JOIN message_read ON message_read.group_id = gid AND message_read.user_id = ?
+                ) as unread
+                ")
+            ->setBindings([$userID])
             ->join('group_members', 'group_members.group_id', '=', 'groups.id')
             ->join('messages', 'messages.group_id', '=', 'groups.id')
             ->where([
@@ -88,9 +97,12 @@ class GroupService
             ])
             ->groupBy('groups.id')
             ->orderByDesc('mid')
-            ->get()->map(function ($data) {return $data->mid;});
+            ->get();
 
-        return Message::whereIn('id', $mids)->with(
+        $mids = $data->map(function ($data) {return $data->mid;});
+        $unreads = $data->map(function ($data) {return $data->unread;});
+
+        $paginate = Message::whereIn('id', $mids)->with(
             $isOneToOne ?
             [
                 'group.members' => function ($query) use ($userID) {
@@ -98,6 +110,15 @@ class GroupService
                 },
             ] : 'group'
         )->latest('id')->simplePaginate($perPage);
+
+        return tap($paginate, function ($paginate) use ($unreads) {
+            return $paginate->getCollection()->transform(function ($message, $i) use ($unreads) {
+                return [
+                    'message' => $message,
+                    'unread' => $unreads[$i],
+                ];
+            });
+        });
     }
 
     public function getOneToOneGroup($user1ID, $user2ID)
