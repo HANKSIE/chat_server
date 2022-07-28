@@ -29,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
             ->name('groups.recent-contact');
+        Route::put('mark-as-read', [GroupController::class, 'markAsRead'])
+            ->name('groups.mark-as-read');
     });
     Route::resource('groups', GroupController::class)->only(['index']);
     Route::get('users/search/{perPage}/{keyword?}', [FriendController::class, 'findNewFriendSimplePaginate']);

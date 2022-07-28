@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Models\Group;
 use App\Models\Message;
+use App\Models\MessageRead;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -126,5 +127,12 @@ class GroupService
         return User::find($user1ID)->groups()->oneToOne()->whereHas('members', function ($query) use ($user2ID) {
             $query->where('user_id', $user2ID);
         })->first();
+    }
+
+    public function markAsRead($userID, $groupID)
+    {
+        $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
+        $record->count = Group::find($groupID)->messages()->count();
+        $record->save();
     }
 }
