@@ -23,7 +23,7 @@ class MarkAsReadTest extends TestCase
         $user = User::find(1);
         Sanctum::actingAs($user);
         $this->assertDatabaseHas('message_read', ['user_id' => 1, 'group_id' => 1, 'count' => 0]);
-        $this->putJson(route('groups.mark-as-read', ['group_id' => 1]))->assertStatus(Response::HTTP_NO_CONTENT);
+        $this->putJson(route('message.mark-as-read', ['group_id' => 1]))->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseHas('message_read', ['user_id' => 1, 'group_id' => 1, 'count' => 15]);
     }
 

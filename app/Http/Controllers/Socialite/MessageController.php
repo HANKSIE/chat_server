@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Socialite;
 use App\Http\Controllers\Controller;
 use App\Services\MessageService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class MessageController extends Controller
 {
@@ -27,5 +28,11 @@ class MessageController extends Controller
     public function simplePaginate($groupID, $perPage = 5, $keyword = '')
     {
         return $this->messageService->simplePaginate($groupID, $keyword, $perPage);
+    }
+
+    public function markAsRead(Request $request)
+    {
+        $this->messageService->markAsRead(auth()->user()->id, $request->group_id);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 }

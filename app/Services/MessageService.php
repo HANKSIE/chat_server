@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Events\GroupMessage;
 use App\Models\Group;
 use App\Models\Message;
+use App\Models\MessageRead;
 use Illuminate\Support\Facades\DB;
 
 class MessageService
@@ -23,6 +24,7 @@ class MessageService
 
         $message = DB::transaction(function () use ($groupID, $userID, $body) {
             $message = Group::find($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
+            $this->markAsRead($userID, $groupID);
             return $message->load(
                 $message->group->is_one_to_one ?
                 [
@@ -46,5 +48,12 @@ class MessageService
             ->orderBy('id', 'desc')
             ->simplePaginate($perPage);
         return $simplePaginate;
+    }
+
+    public function markAsRead($userID, $groupID)
+    {
+        $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
+        $record->count = Group::find($groupID)->messages()->count();
+        $record->save();
     }
 }

@@ -24,13 +24,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('messages')->group(function () {
         Route::get('search/{groupID}/{perPage?}/{keyword?}', [MessageController::class, 'simplePaginate'])
             ->name('message.simple-paginate');
+
+    });
+    Route::prefix('message')->group(function () {
+        Route::put('mark-as-read', [MessageController::class, 'markAsRead'])
+            ->name('message.mark-as-read');
     });
     Route::resource('messages', MessageController::class)->only('store');
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
-            ->name('groups.recent-contact');
-        Route::put('mark-as-read', [GroupController::class, 'markAsRead'])
-            ->name('groups.mark-as-read');
+            ->name('group.recent-contact');
+
     });
     Route::resource('groups', GroupController::class)->only(['index']);
     Route::get('users/search/{perPage}/{keyword?}', [FriendController::class, 'findNewFriendSimplePaginate']);

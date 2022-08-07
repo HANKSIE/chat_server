@@ -49,5 +49,6 @@ class MessageTest extends TestCase
             return $event->message->id === $messageID;
         });
         $this->assertDatabaseHas('messages', ['id' => $messageID, 'group_id' => $group->id, 'body' => $body, 'user_id' => $user1->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'count' => 16]);
     }
 }
