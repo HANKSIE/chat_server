@@ -26,6 +26,11 @@ class Group extends Model
         return $this->hasMany(Message::class);
     }
 
+    public function messageReads()
+    {
+        return $this->hasMany(MessageRead::class);
+    }
+
     public function latestMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();

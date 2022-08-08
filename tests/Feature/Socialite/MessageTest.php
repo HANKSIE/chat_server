@@ -35,7 +35,7 @@ class MessageTest extends TestCase
         })->first();
         $body = $this->faker->text();
         Sanctum::actingAs($user1);
-        $res = $this->postJson('messages', ['group_id' => $group->id, 'body' => $body])
+        $res = $this->postJson("group/{$group->id}/messages", ['body' => $body])
             ->assertOk()
             ->assertJson(function (AssertableJson $json) use ($group, $user1, $body) {
                 $json->whereAll([
@@ -60,7 +60,7 @@ class MessageTest extends TestCase
         $group = Group::find(1);
         Sanctum::actingAs($user);
         $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => null]);
-        $this->putJson(route('message.mark-as-read', ['group_id' => 1]))->assertStatus(Response::HTTP_NO_CONTENT);
+        $this->putJson(route('message.mark-as-read', [1]))->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => $group->latestMessage->id]);
     }
 }

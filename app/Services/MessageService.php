@@ -50,6 +50,19 @@ class MessageService
         return $simplePaginate;
     }
 
+    public function cursorPaginate($groupID, $perPage = 5)
+    {
+        return Group::find($groupID)->messages()
+            ->with('user')
+            ->orderBy('id', 'desc')
+            ->cursorPaginate($perPage);
+    }
+
+    public function messageReads($groupID)
+    {
+        return Group::find($groupID)->messageReads;
+    }
+
     public function markAsRead($userID, $groupID)
     {
         $latestMessage = Group::find($groupID)->latestMessage;

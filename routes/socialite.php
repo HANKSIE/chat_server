@@ -21,16 +21,23 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('sent/{perPage}', [FriendController::class, 'requestsFromMe'])->name('friend.request.from');
         });
     });
-    Route::prefix('messages')->group(function () {
-        Route::get('search/{groupID}/{perPage?}/{keyword?}', [MessageController::class, 'simplePaginate'])
-            ->name('message.simple-paginate');
+
+    Route::prefix('group')->group(function () {
+        Route::prefix('{groupID}')->group(function () {
+            Route::prefix('messages')->group(function () {
+                Route::get('search/{perPage?}/{keyword?}', [MessageController::class, 'simplePaginate'])
+                    ->name('message.simple-paginate');
+                Route::get('paginate/{perPage?}', [MessageController::class, 'cursorPaginate'])
+                    ->name('message.cursor-paginate');
+            });
+            Route::prefix('message')->group(function () {
+                Route::put('mark-as-read', [MessageController::class, 'markAsRead'])
+                    ->name('message.mark-as-read');
+            });
+            Route::resource('messages', MessageController::class)->only('store');
+        });
 
     });
-    Route::prefix('message')->group(function () {
-        Route::put('mark-as-read', [MessageController::class, 'markAsRead'])
-            ->name('message.mark-as-read');
-    });
-    Route::resource('messages', MessageController::class)->only('store');
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
             ->name('group.recent-contact');

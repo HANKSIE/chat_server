@@ -15,13 +15,12 @@ class MessageController extends Controller
         $this->messageService = $messageService;
     }
 
-    public function store(Request $request)
+    public function store($groupID, Request $request)
     {
         $request->validate([
-            'group_id' => ['required', 'numeric'],
             'body' => ['required', 'string'],
         ]);
-        $message = $this->messageService->create(auth()->user()->id, $request->group_id, $request->body);
+        $message = $this->messageService->create(auth()->user()->id, $groupID, $request->body);
         return response()->json(['message' => $message]);
     }
 
@@ -30,9 +29,14 @@ class MessageController extends Controller
         return $this->messageService->simplePaginate($groupID, $keyword, $perPage);
     }
 
-    public function markAsRead(Request $request)
+    public function cursorPaginate($groupID, $perPage = 5)
     {
-        $this->messageService->markAsRead(auth()->user()->id, $request->group_id);
+        return $this->messageService->cursorPaginate($groupID, $perPage);
+    }
+
+    public function markAsRead($groupID)
+    {
+        $this->messageService->markAsRead(auth()->user()->id, $groupID);
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
 }
