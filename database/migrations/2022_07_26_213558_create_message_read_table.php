@@ -15,9 +15,9 @@ class CreateMessageReadTable extends Migration
     {
         Schema::create('message_read', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users');
-            $table->foreignId('group_id')->nullable()->constrained('groups');
-            $table->unsignedInteger('count')->default(0);
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('group_id')->constrained('groups');
+            $table->foreignId('message_id')->nullable(); // message 有可能被刪除所以不級聯
             $table->timestamps();
         });
     }

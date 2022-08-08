@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Socialite;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Services\GroupService;
-use Illuminate\Http\Response;
 
 class GroupController extends Controller
 {

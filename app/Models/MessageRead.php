@@ -11,5 +11,5 @@ class MessageRead extends Model
 
     protected $table = 'message_read';
 
-    protected $fillable = ['user_id', 'group_id', 'count'];
+    protected $fillable = ['user_id', 'group_id', 'message_id'];
 }

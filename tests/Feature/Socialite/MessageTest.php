@@ -1,11 +1,13 @@
 <?php
 
-namespace Tests\Feature\Auth;
+namespace Tests\Feature\Socialite;
 
 use App\Events\GroupMessage;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Sanctum\Sanctum;
@@ -49,6 +51,16 @@ class MessageTest extends TestCase
             return $event->message->id === $messageID;
         });
         $this->assertDatabaseHas('messages', ['id' => $messageID, 'group_id' => $group->id, 'body' => $body, 'user_id' => $user1->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'count' => 16]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $messageID]);
+    }
+
+    public function test_message_mark_as_read()
+    {
+        $user = User::find(1);
+        $group = Group::find(1);
+        Sanctum::actingAs($user);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => null]);
+        $this->putJson(route('message.mark-as-read', ['group_id' => 1]))->assertStatus(Response::HTTP_NO_CONTENT);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => $group->latestMessage->id]);
     }
 }

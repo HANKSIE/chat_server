@@ -52,8 +52,9 @@ class MessageService
 
     public function markAsRead($userID, $groupID)
     {
+        $latestMessage = Group::find($groupID)->latestMessage;
         $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
-        $record->count = Group::find($groupID)->messages()->count();
+        $record->message_id = $latestMessage->id;
         $record->save();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Auth;
+namespace Tests\Feature\Socialite\Friend;
 
 use App\Events\BeFriend;
 use App\Models\FriendRequest;
@@ -63,8 +63,8 @@ class RequestTest extends TestCase
         $this->assertDatabaseMissing('friend_requests', $reqData);
         $this->assertDatabaseHas('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
         $this->assertDatabaseHas('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $groupID, 'count' => 0]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $groupID, 'count' => 0]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $groupID, 'message_id' => null]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $groupID, 'message_id' => null]);
         Event::assertDispatched(BeFriend::class);
     }
 
