@@ -32,13 +32,15 @@ class GroupService
                 "MAX(messages.id) AS mid,
                 messages.group_id AS gid,
                 (
-                    SELECT SUM(
-                        CASE WHEN messages.group_id = gid AND messages.id >
-                            (
-                                CASE WHEN message_read.message_id IS NULL
-                                THEN 0 ELSE message_read.message_id END
-                            )
-                        THEN 1 ELSE 0 END
+                    SELECT CAST(
+                        SUM(
+                            CASE WHEN messages.group_id = gid AND messages.id >
+                                (
+                                    CASE WHEN message_read.message_id IS NULL
+                                    THEN 0 ELSE message_read.message_id END
+                                )
+                            THEN 1 ELSE 0 END
+                        ) AS INT
                     ) AS unread
                     FROM messages
                     INNER JOIN message_read ON message_read.group_id = gid AND message_read.user_id = ?
