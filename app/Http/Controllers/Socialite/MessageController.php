@@ -39,4 +39,9 @@ class MessageController extends Controller
         $this->messageService->markAsRead(auth()->user()->id, $groupID);
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
+
+    public function messageReads($groupID)
+    {
+        return ['message_reads' => $this->messageService->messageReads($groupID)];
+    }
 }

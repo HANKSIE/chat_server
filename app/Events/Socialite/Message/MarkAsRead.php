@@ -1,34 +1,34 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Socialite\Message;
 
-use App\Models\Message;
+use App\Models\MessageRead;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\InteractsWithQueue;
 
-class GroupMessage implements ShouldBroadcast
+class MarkAsRead implements ShouldBroadcast
 {
     use InteractsWithSockets, InteractsWithQueue;
     public $afterCommit = true;
     /**
-     * @var Message
+     * @var MessageRead
      */
-    public $message;
+    public $messageRead;
 
-    public function __construct(Message $message)
+    public function __construct(MessageRead $messageRead)
     {
-        $this->message = $message;
+        $this->messageRead = $messageRead;
     }
 
     public function broadcastOn()
     {
-        return new PresenceChannel("group.{$this->message->group_id}");
+        return new PresenceChannel("group.{$this->messageRead->group_id}");
     }
 
     public function broadcastAs()
     {
-        return "message";
+        return "mark-as-read";
     }
 }

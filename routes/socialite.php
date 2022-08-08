@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
                     ->name('message.mark-as-read');
             });
             Route::resource('messages', MessageController::class)->only('store');
+            Route::get('message-reads', [MessageController::class, 'messageReads']);
         });
 
     });

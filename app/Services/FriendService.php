@@ -1,8 +1,8 @@
 <?php
 namespace App\Services;
 
-use App\Events\BeFriend;
-use App\Events\UnFriend;
+use App\Events\Socialite\Friend\BeFriend;
+use App\Events\Socialite\Friend\UnFriend;
 use App\Models\Group;
 use App\Models\MessageRead;
 use App\Models\User;

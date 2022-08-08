@@ -1,9 +1,11 @@
 <?php
 
-namespace Tests\Feature\Socialite\Friend;
+namespace Tests\Feature\Socialite;
 
-use App\Events\BeFriend;
+use App\Events\Socialite\Friend\BeFriend;
+use App\Events\Socialite\Friend\UnFriend;
 use App\Models\FriendRequest;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
@@ -12,7 +14,7 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
-class RequestTest extends TestCase
+class FriendTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -90,5 +92,22 @@ class RequestTest extends TestCase
         $this->deleteJson(route('friend.request.revoke'), ['recipient_id' => $user2->id])
             ->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseMissing('friend_requests', $reqData);
+    }
+
+    public function test_unfriend()
+    {
+        Event::fake();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
+        FriendRequest::create($reqData);
+        Sanctum::actingAs($user1);
+        $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id]);
+        $this->delete(route('unfriend'), ['friend_id' => $user2->id])->assertNoContent();
+        $groupID = $res->getOriginalContent()['group_id'];
+        $this->assertNotNull(Group::withTrashed()->find($groupID));
+        $this->assertDatabaseMissing('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
+        $this->assertDatabaseMissing('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
+        Event::assertDispatched(UnFriend::class);
     }
 }

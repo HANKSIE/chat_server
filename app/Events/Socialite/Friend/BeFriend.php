@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Socialite\Friend;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;

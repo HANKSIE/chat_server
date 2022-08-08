@@ -54,7 +54,6 @@ class FriendController extends Controller
 
     public function unfriend(Request $request)
     {
-        // broadcast for echo leave
         $this->friendService->unfriend(auth()->user()->id, $request->friend_id);
         return response()->json([], Response::HTTP_NO_CONTENT);
     }

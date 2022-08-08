@@ -1,7 +1,8 @@
 <?php
 namespace App\Services;
 
-use App\Events\GroupMessage;
+use App\Events\Socialite\Message\MarkAsRead;
+use App\Events\Socialite\Message\SendMessage;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\MessageRead;
@@ -24,7 +25,6 @@ class MessageService
 
         $message = DB::transaction(function () use ($groupID, $userID, $body) {
             $message = Group::find($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
-            $this->markAsRead($userID, $groupID);
             return $message->load(
                 $message->group->is_one_to_one ?
                 [
@@ -34,7 +34,8 @@ class MessageService
             );
         });
 
-        broadcast(new GroupMessage($message))->toOthers();
+        broadcast(new SendMessage($message))->toOthers();
+        $this->markAsRead($userID, $groupID);
         return $message;
     }
 
@@ -72,5 +73,6 @@ class MessageService
         $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
         $record->message_id = $latestMessage->id;
         $record->save();
+        broadcast(new MarkAsRead($record->fresh()));
     }
 }
