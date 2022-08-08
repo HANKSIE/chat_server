@@ -73,6 +73,6 @@ class MessageService
         $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
         $record->message_id = $latestMessage->id;
         $record->save();
-        broadcast(new MarkAsRead($record->fresh()));
+        broadcast(new MarkAsRead($record->fresh()))->toOthers();
     }
 }
