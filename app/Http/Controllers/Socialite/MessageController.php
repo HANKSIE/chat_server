@@ -24,8 +24,9 @@ class MessageController extends Controller
         return response()->json(['message' => $message]);
     }
 
-    public function paginate($groupID, $perPage = 5)
+    public function paginate($groupID, Request $request)
     {
+        $perPage = $request->query('per_page');
         return $this->messageService->paginate($groupID, $perPage);
     }
 

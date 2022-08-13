@@ -82,7 +82,7 @@ class FriendService
     {
         $friendIDs = $this->getAllFriendIDs($userID);
         if (count($friendIDs) === 0) { // 回傳data為空的simple paginate ($friendsIDs為空search->whereIn會丟出exception)
-            return User::find($userID)->friends()->simplePaginate($perPage);
+            return User::find($userID)->friends()->simplePaginate($perPage)->withQueryString();
         }
 
         $paginate = User::search($keyword)
@@ -94,7 +94,7 @@ class FriendService
                     });
                 }]);
             })
-            ->simplePaginate($perPage);
+            ->simplePaginate($perPage)->withQueryString();
 
         return tap($paginate, function ($paginate) {
             return $paginate->getCollection()->transform(function ($user) {
@@ -112,7 +112,7 @@ class FriendService
 
     public function findNewFriendPaginate($userID, $keyword = '', $perPage = 5)
     {
-        $paginate = User::search($keyword)->simplePaginate($perPage);
+        $paginate = User::search($keyword)->simplePaginate($perPage)->withQueryString();
         $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
         $statuses = DB::table('users')->selectRaw("(CASE
             WHEN users.id = ? THEN 1
@@ -153,21 +153,15 @@ class FriendService
         return User::find($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
     }
 
-    public function requestsToMePaginate($userID, $perPage = 5)
+    public function requestsPaginate($userID, $type, $perPage = 5)
     {
-        return tap(User::find($userID)->friendRequestsToMe()->cursorPaginate($perPage), function ($paginate) {
-            $paginate->getCollection()->transform(function ($req) {
-                return $req->sender;
+        return tap(User::find($userID)
+                ->{$type == 'receive' ? "friendRequestsToMe" : "friendRequestsFromMe"}()
+                ->cursorPaginate($perPage)
+                ->withQueryString(), function ($paginate) {
+                $paginate->getCollection()->transform(function ($req) {
+                    return $req->sender;
+                });
             });
-        });
-    }
-
-    public function requestsFromMePaginate($userID, $perPage = 5)
-    {
-        return tap(User::find($userID)->friendRequestsFromMe()->cursorPaginate($perPage), function ($paginate) {
-            $paginate->getCollection()->transform(function ($req) {
-                return $req->recipient;
-            });
-        });
     }
 }

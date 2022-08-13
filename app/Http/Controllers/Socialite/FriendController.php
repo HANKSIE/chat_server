@@ -16,13 +16,17 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-    public function paginate($perPage = 5, $keyword = '')
+    public function paginate(Request $request)
     {
+        $keyword = $request->query('q', '');
+        $perPage = $request->query('per_page');
         return response()->json($this->friendService->paginate(auth()->user()->id, $keyword, $perPage));
     }
 
-    public function findNewFriendPaginate($perPage = 5, $keyword = '')
+    public function findNewFriendPaginate(Request $request)
     {
+        $keyword = $request->query('q', '');
+        $perPage = $request->query('per_page');
         return response()->json($this->friendService->findNewFriendPaginate(auth()->user()->id, $keyword, $perPage));
     }
 
@@ -58,19 +62,16 @@ class FriendController extends Controller
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
 
-    public function requestsToMePaginate($perPage)
-    {
-        return $this->friendService->requestsToMePaginate(auth()->user()->id, $perPage);
-    }
-
-    public function requestsFromMePaginate($perPage)
-    {
-        return $this->friendService->requestsFromMePaginate(auth()->user()->id, $perPage);
-    }
-
     public function revokeRequest(Request $request)
     {
         $this->friendService->denyFriendRequest(auth()->user()->id, $request->recipient_id);
         return response()->json([], Response::HTTP_NO_CONTENT);
+    }
+
+    public function requestsPaginate(Request $request)
+    {
+        $type = $request->query('type');
+        $perPage = $request->query('per_page');
+        return $this->friendService->requestsPaginate(auth()->user()->id, $type, $perPage);
     }
 }

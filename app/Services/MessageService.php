@@ -40,10 +40,12 @@ class MessageService
 
     public function paginate($groupID, $perPage = 5)
     {
-        return Group::find($groupID)->messages()
+        return Group::find($groupID)
+            ->messages()
             ->with('user')
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function markAsRead($userID, $groupID)

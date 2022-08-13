@@ -68,7 +68,9 @@ class GroupService
                     $query->where('group_members.user_id', '!=', $userID);
                 },
             ] : 'group'
-        )->latest('id')->cursorPaginate($perPage);
+        )->latest('id')
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
         return tap($paginate, function ($paginate) use ($unreads) {
             return $paginate->getCollection()->transform(function ($message, $i) use ($unreads) {

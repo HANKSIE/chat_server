@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Socialite;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Services\GroupService;
+use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
@@ -15,8 +16,10 @@ class GroupController extends Controller
         $this->groupService = $groupService;
     }
 
-    public function recentContactPaginate($isOneToOne, $perPage = 5)
+    public function recentContactPaginate(Request $request)
     {
+        $isOneToOne = $request->query('is_one_to_one');
+        $perPage = $request->query('per_page');
         return $this->groupService->recentContactPaginate(auth()->user()->id, $isOneToOne, $perPage);
     }
 
