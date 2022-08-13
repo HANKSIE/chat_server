@@ -59,11 +59,6 @@ class MessageService
             ->cursorPaginate($perPage);
     }
 
-    public function messageReads($groupID)
-    {
-        return Group::find($groupID)->messageReads;
-    }
-
     public function markAsRead($userID, $groupID)
     {
         $latestMessage = Group::find($groupID)->latestMessage;
@@ -73,6 +68,6 @@ class MessageService
         $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
         $record->message_id = $latestMessage->id;
         $record->save();
-        broadcast(new MarkAsRead($record->fresh()))->toOthers();
+        broadcast(new MarkAsRead($record->fresh()));
     }
 }

@@ -87,6 +87,11 @@ class GroupService
         })->first();
     }
 
+    public function messageReads($groupID)
+    {
+        return Group::find($groupID)->messageReads;
+    }
+
     // public function create($userID, $name)
     // {
     //     return DB::transaction(function () use ($userID, $name) {

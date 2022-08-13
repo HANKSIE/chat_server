@@ -20,6 +20,11 @@ class GroupController extends Controller
         return $this->groupService->recentContactCursorPaginate(auth()->user()->id, $isOneToOne, $perPage);
     }
 
+    public function messageReads($groupID)
+    {
+        return response()->json(['message_reads' => $this->groupService->messageReads($groupID)]);
+    }
+
     public function index()
     {
         return response()->json(['groups' => $this->groupService->getAllIDs(auth()->user()->id)]);

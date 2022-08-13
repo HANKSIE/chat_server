@@ -35,9 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
                     ->name('message.mark-as-read');
             });
             Route::resource('messages', MessageController::class)->only('store');
-            Route::get('message-reads', [MessageController::class, 'messageReads']);
+            Route::get('message-reads', [GroupController::class, 'messageReads']);
         });
-
     });
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/{isOneToOne}/{perPage?}', [GroupController::class, 'recentContact'])
