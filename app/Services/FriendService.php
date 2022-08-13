@@ -78,14 +78,14 @@ class FriendService
         broadcast(new UnFriend($user1->id, $user2->id, $group->id))->toOthers();
     }
 
-    public function simplePaginate($userID, $keyword = '', $perPage = 5)
+    public function paginate($userID, $keyword = '', $perPage = 5)
     {
         $friendIDs = $this->getAllFriendIDs($userID);
         if (count($friendIDs) === 0) { // 回傳data為空的simple paginate ($friendsIDs為空search->whereIn會丟出exception)
             return User::find($userID)->friends()->simplePaginate($perPage);
         }
 
-        $simplePaginate = User::search($keyword)
+        $paginate = User::search($keyword)
             ->whereIn('id', $friendIDs)
             ->query(function ($query) use ($userID) {
                 $query->with(['groups' => function ($query) use ($userID) {
@@ -96,8 +96,8 @@ class FriendService
             })
             ->simplePaginate($perPage);
 
-        return tap($simplePaginate, function ($paginatedInstance) {
-            return $paginatedInstance->getCollection()->transform(function ($user) {
+        return tap($paginate, function ($paginate) {
+            return $paginate->getCollection()->transform(function ($user) {
                 $group = $user->groups[0];
                 unset($group->pivot);
                 unset($group->latestMessage);
@@ -110,10 +110,10 @@ class FriendService
         });
     }
 
-    public function findNewFriendSimplePaginate($userID, $keyword = '', $perPage = 5)
+    public function findNewFriendPaginate($userID, $keyword = '', $perPage = 5)
     {
-        $simplePaginate = User::search($keyword)->simplePaginate($perPage);
-        $ids = $simplePaginate->getCollection()->map(function ($user) {return $user->id;});
+        $paginate = User::search($keyword)->simplePaginate($perPage);
+        $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
         $statuses = DB::table('users')->selectRaw("(CASE
             WHEN users.id = ? THEN 1
             WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
@@ -131,8 +131,8 @@ class FriendService
         )->whereIn('id', $ids)->orderBy('id')->get()->map(function ($data) {
             return $data->status;
         });
-        return tap($simplePaginate, function ($simplePaginate) use ($statuses) {
-            return $simplePaginate->getCollection()->transform(function ($user, $i) use ($statuses) {
+        return tap($paginate, function ($paginate) use ($statuses) {
+            return $paginate->getCollection()->transform(function ($user, $i) use ($statuses) {
                 return [
                     'user' => $user,
                     'status' => $statuses[$i],
@@ -153,19 +153,19 @@ class FriendService
         return User::find($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
     }
 
-    public function requestsToMeCursorPaginate($userID, $perPage = 5)
+    public function requestsToMePaginate($userID, $perPage = 5)
     {
-        return tap(User::find($userID)->friendRequestsToMe()->cursorPaginate($perPage), function ($cursorPaginate) {
-            $cursorPaginate->getCollection()->transform(function ($req) {
+        return tap(User::find($userID)->friendRequestsToMe()->cursorPaginate($perPage), function ($paginate) {
+            $paginate->getCollection()->transform(function ($req) {
                 return $req->sender;
             });
         });
     }
 
-    public function requestsFromMeCursorPaginate($userID, $perPage = 5)
+    public function requestsFromMePaginate($userID, $perPage = 5)
     {
-        return tap(User::find($userID)->friendRequestsFromMe()->cursorPaginate($perPage), function ($cursorPaginate) {
-            $cursorPaginate->getCollection()->transform(function ($req) {
+        return tap(User::find($userID)->friendRequestsFromMe()->cursorPaginate($perPage), function ($paginate) {
+            $paginate->getCollection()->transform(function ($req) {
                 return $req->recipient;
             });
         });

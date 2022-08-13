@@ -25,7 +25,7 @@ class GroupService
         return User::find($userID)->groups()->where('groups.id', $groupID)->exists();
     }
 
-    public function recentContactCursorPaginate($userID, $isOneToOne = false, $perPage = 5)
+    public function recentContactPaginate($userID, $isOneToOne = false, $perPage = 5)
     {
         $data = DB::table('groups')
             ->selectRaw(
@@ -68,7 +68,7 @@ class GroupService
                     $query->where('group_members.user_id', '!=', $userID);
                 },
             ] : 'group'
-        )->latest('id')->simplePaginate($perPage);
+        )->latest('id')->cursorPaginate($perPage);
 
         return tap($paginate, function ($paginate) use ($unreads) {
             return $paginate->getCollection()->transform(function ($message, $i) use ($unreads) {

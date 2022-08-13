@@ -15,9 +15,9 @@ class GroupController extends Controller
         $this->groupService = $groupService;
     }
 
-    public function recentContact($isOneToOne, $perPage = 5)
+    public function recentContactPaginate($isOneToOne, $perPage = 5)
     {
-        return $this->groupService->recentContactCursorPaginate(auth()->user()->id, $isOneToOne, $perPage);
+        return $this->groupService->recentContactPaginate(auth()->user()->id, $isOneToOne, $perPage);
     }
 
     public function messageReads($groupID)

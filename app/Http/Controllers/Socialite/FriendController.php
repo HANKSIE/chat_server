@@ -16,14 +16,14 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-    public function simplePaginate($perPage = 5, $keyword = '')
+    public function paginate($perPage = 5, $keyword = '')
     {
-        return response()->json($this->friendService->simplePaginate(auth()->user()->id, $keyword, $perPage));
+        return response()->json($this->friendService->paginate(auth()->user()->id, $keyword, $perPage));
     }
 
-    public function findNewFriendSimplePaginate($perPage = 5, $keyword = '')
+    public function findNewFriendPaginate($perPage = 5, $keyword = '')
     {
-        return response()->json($this->friendService->findNewFriendSimplePaginate(auth()->user()->id, $keyword, $perPage));
+        return response()->json($this->friendService->findNewFriendPaginate(auth()->user()->id, $keyword, $perPage));
     }
 
     public function sendRequest(Request $request)
@@ -58,14 +58,14 @@ class FriendController extends Controller
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
 
-    public function requestsToMe($perPage)
+    public function requestsToMePaginate($perPage)
     {
-        return $this->friendService->requestsToMeCursorPaginate(auth()->user()->id, $perPage);
+        return $this->friendService->requestsToMePaginate(auth()->user()->id, $perPage);
     }
 
-    public function requestsFromMe($perPage)
+    public function requestsFromMePaginate($perPage)
     {
-        return $this->friendService->requestsFromMeCursorPaginate(auth()->user()->id, $perPage);
+        return $this->friendService->requestsFromMePaginate(auth()->user()->id, $perPage);
     }
 
     public function revokeRequest(Request $request)

@@ -4,7 +4,6 @@ namespace App\Services;
 use App\Events\Socialite\Message\MarkAsRead;
 use App\Events\Socialite\Message\SendMessage;
 use App\Models\Group;
-use App\Models\Message;
 use App\Models\MessageRead;
 use Illuminate\Support\Facades\DB;
 
@@ -39,24 +38,12 @@ class MessageService
         return $message;
     }
 
-    public function simplePaginate($groupID, $keyword = '', $perPage = 5)
-    {
-        $simplePaginate = Message::search($keyword)
-            ->where('group_id', $groupID)
-            ->query(function ($query) {
-                $query->with('user');
-            })
-            ->orderBy('id', 'desc')
-            ->simplePaginate($perPage);
-        return $simplePaginate;
-    }
-
-    public function cursorPaginate($groupID, $perPage = 5)
+    public function paginate($groupID, $perPage = 5)
     {
         return Group::find($groupID)->messages()
             ->with('user')
             ->orderBy('id', 'desc')
-            ->cursorPaginate($perPage);
+            ->paginate($perPage);
     }
 
     public function markAsRead($userID, $groupID)
