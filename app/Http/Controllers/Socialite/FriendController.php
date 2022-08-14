@@ -38,7 +38,7 @@ class FriendController extends Controller
     public function acceptRequest(Request $request)
     {
         $group = $this->friendService->acceptRequest($request->sender_id, auth()->user()->id);
-        return response()->json(['group_id' => $group->id]);
+        return response()->json(['group_id' => is_null($group) ? null : $group->id]);
     }
 
     public function denyRequest(Request $request)

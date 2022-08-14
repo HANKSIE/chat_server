@@ -1,6 +1,7 @@
 <?php
 namespace App\Repositories;
 
+use App\Models\FriendRequest;
 use App\Models\Group;
 use App\Models\MessageRead;
 use App\Models\User;
@@ -23,22 +24,18 @@ class FriendRepository
 
     public function denyRequest($senderID, $recipientID)
     {
-        $req = User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->first();
-        return $req->delete();
+        return User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->delete();
     }
 
     public function acceptRequest($senderID, $recipientID)
     {
-        $sender = User::find($senderID);
-        $recipient = User::find($recipientID);
-        $req = $recipient->friendRequestsToMe()->where(['sender_id' => $sender->id])->first();
+        $req = FriendRequest::where(['sender_id' => $senderID, 'recipient_id' => $recipientID])->first();
         if (is_null($req)) {
             return null;
         }
 
-        return DB::transaction(function () use ($sender, $recipient, $req) {
-            $group = $this->beFriend($sender->id, $recipient->id);
-            $sender = $req->sender;
+        return DB::transaction(function () use ($senderID, $recipientID, $req) {
+            $group = $this->beFriend($senderID, $recipientID);
             $req->delete();
             return $group;
         });
@@ -69,13 +66,17 @@ class FriendRepository
     {
         $user1 = User::find($user1ID);
         $user2 = User::find($user2ID);
-        $group = $this->groupRepository->getIntersectionGroup($user1->id, $user2->id, true)[0];
-        DB::transaction(function () use ($user1, $user2, $group) {
-            $user1->friends()->detach($user2->id);
-            $user2->friends()->detach($user1->id);
-            $group->delete();
-        });
-        return $group;
+        $groups = $this->groupRepository->getIntersectionGroups($user1->id, $user2->id, true);
+        if (count($groups) !== 0) {
+            $group = $groups[0];
+            DB::transaction(function () use ($user1, $user2, $group) {
+                $user1->friends()->detach($user2->id);
+                $user2->friends()->detach($user1->id);
+                $group->delete();
+            });
+            return $group;
+        }
+        return null;
     }
 
     public function paginate($userID, $keyword, $perPage)

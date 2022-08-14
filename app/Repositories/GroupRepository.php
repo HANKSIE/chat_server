@@ -82,7 +82,7 @@ class GroupRepository
         });
     }
 
-    public function getIntersectionGroup($user1ID, $user2ID, $isOneToOne)
+    public function getIntersectionGroups($user1ID, $user2ID, $isOneToOne)
     {
         return User::find($user1ID)->groups()->when($isOneToOne, function ($query) {
             $query->oneToOne();

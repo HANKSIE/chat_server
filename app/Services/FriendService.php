@@ -33,14 +33,18 @@ class FriendService
     public function acceptRequest($senderID, $recipientID)
     {
         $group = $this->friendRepository->acceptRequest($senderID, $recipientID);
-        broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
+        if (!is_null($group)) {
+            broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
+        }
         return $group;
     }
 
     public function unFriend($user1ID, $user2ID)
     {
         $group = $this->friendRepository->unFriend($user1ID, $user2ID);
-        broadcast(new UnFriend($user1ID, $user2ID, $group->id))->toOthers();
+        if (!is_null($group)) {
+            broadcast(new UnFriend($user1ID, $user2ID, $group->id))->toOthers();
+        }
     }
 
     public function paginate($userID, $keyword, $perPage)

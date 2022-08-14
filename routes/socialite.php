@@ -20,19 +20,17 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    Route::prefix('group')->group(function () {
-        Route::prefix('{groupID}')->group(function () {
-            Route::prefix('messages')->group(function () {
-                Route::get('search', [MessageController::class, 'paginate'])
-                    ->name('message.paginate');
-            });
-            Route::prefix('message')->group(function () {
-                Route::put('mark-as-read', [MessageController::class, 'markAsRead'])
-                    ->name('message.mark-as-read');
-            });
-            Route::resource('messages', MessageController::class)->only('store');
-            Route::get('message-reads', [GroupController::class, 'messageReads']);
+    Route::prefix('group/{groupID}')->middleware(['can:access-group,groupID'])->group(function () {
+        Route::prefix('messages')->group(function () {
+            Route::get('search', [MessageController::class, 'paginate'])
+                ->name('message.paginate');
         });
+        Route::prefix('message')->group(function () {
+            Route::put('mark-as-read', [MessageController::class, 'markAsRead'])
+                ->name('message.mark-as-read');
+        });
+        Route::resource('messages', MessageController::class)->only('store');
+        Route::get('message-reads', [GroupController::class, 'messageReads']);
     });
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/search', [GroupController::class, 'recentContactPaginate'])
