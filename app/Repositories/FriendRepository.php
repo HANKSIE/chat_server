@@ -72,7 +72,7 @@ class FriendRepository
             DB::transaction(function () use ($user1, $user2, $group) {
                 $user1->friends()->detach($user2->id);
                 $user2->friends()->detach($user1->id);
-                $group->members()->detach($user1->id);
+                $group->delete();
             });
             return $group;
         }

@@ -52,6 +52,7 @@ class GroupRepository
             ->where([
                 'group_members.user_id' => $userID,
                 'groups.is_one_to_one' => $isOneToOne,
+                'groups.deleted_at' => null,
             ])
             ->groupBy('groups.id')
             ->orderByDesc('mid')
