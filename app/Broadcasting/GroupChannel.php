@@ -3,15 +3,15 @@
 namespace App\Broadcasting;
 
 use App\Models\User;
-use App\Services\GroupService;
+use App\Repositories\GroupRepository;
 
 class GroupChannel
 {
-    private $groupService;
+    private $groupRepository;
 
-    public function __construct(GroupService $groupService)
+    public function __construct(GroupRepository $groupRepository)
     {
-        $this->groupService = $groupService;
+        $this->groupRepository = $groupRepository;
     }
 
     /**
@@ -23,7 +23,7 @@ class GroupChannel
      */
     public function join(User $user, $groupID)
     {
-        if ($this->groupService->has($user->id, $groupID)) {
+        if ($this->groupRepository->has($user->id, $groupID)) {
             return $user;
         }
     }

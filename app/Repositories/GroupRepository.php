@@ -1,12 +1,12 @@
 <?php
-namespace App\Services;
+namespace App\Repositories;
 
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class GroupService
+class GroupRepository
 {
     public function getAllIDs($userID)
     {
@@ -25,7 +25,7 @@ class GroupService
         return User::find($userID)->groups()->where('groups.id', $groupID)->exists();
     }
 
-    public function recentContactPaginate($userID, $isOneToOne = false, $perPage = 5)
+    public function recentContactPaginate($userID, $isOneToOne, $perPage)
     {
         $data = DB::table('groups')
             ->selectRaw(
@@ -82,14 +82,18 @@ class GroupService
         });
     }
 
-    public function getOneToOneGroup($user1ID, $user2ID)
+    public function getIntersectionGroup($user1ID, $user2ID, $isOneToOne)
     {
-        return User::find($user1ID)->groups()->oneToOne()->whereHas('members', function ($query) use ($user2ID) {
+        return User::find($user1ID)->groups()->when($isOneToOne, function ($query) {
+            $query->oneToOne();
+        }, function ($query) {
+            $query->notOneToOne();
+        })->whereHas('members', function ($query) use ($user2ID) {
             $query->where('user_id', $user2ID);
-        })->first();
+        })->get();
     }
 
-    public function messageReads($groupID)
+    public function getMessageReads($groupID)
     {
         return Group::find($groupID)->messageReads;
     }
