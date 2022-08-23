@@ -29,32 +29,32 @@ class GroupRepository
     {
         $data = DB::table('groups')
             ->selectRaw(
-                "MAX(messages.id) AS mid,
-                messages.group_id AS gid,
+                "MAX(m.id) AS mid,
+                m.group_id AS gid,
                 (
                     SELECT CAST(
                         SUM(
-                            CASE WHEN messages.group_id = gid AND messages.id >
+                            CASE WHEN messages.group_id = m.group_id AND messages.id >
                                 (
                                     CASE WHEN message_read.message_id IS NULL
                                     THEN 0 ELSE message_read.message_id END
                                 )
                             THEN 1 ELSE 0 END
                         ) AS INT
-                    ) AS unread
+                    )
                     FROM messages
-                    INNER JOIN message_read ON message_read.group_id = gid AND message_read.user_id = ?
+                    INNER JOIN message_read ON message_read.group_id = m.group_id AND message_read.user_id = ?
                 ) AS unread
                 ")
             ->setBindings([$userID])
             ->join('group_members', 'group_members.group_id', '=', 'groups.id')
-            ->join('messages', 'messages.group_id', '=', 'groups.id')
+            ->join('messages AS m', 'm.group_id', '=', 'groups.id')
             ->where([
                 'group_members.user_id' => $userID,
                 'groups.is_one_to_one' => $isOneToOne,
                 'groups.deleted_at' => null,
             ])
-            ->groupBy('groups.id')
+            ->groupBy('m.group_id')
             ->orderByDesc('mid')
             ->get();
 

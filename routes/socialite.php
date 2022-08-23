@@ -32,11 +32,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::resource('messages', MessageController::class)->only('store');
         Route::get('message-reads', [GroupController::class, 'messageReads']);
     });
+
     Route::prefix('groups')->group(function () {
         Route::get('recent-contact/search', [GroupController::class, 'recentContactPaginate'])
             ->name('group.recent-contact.paginate');
-
     });
+
     Route::resource('groups', GroupController::class)->only(['index']);
     Route::get('users/search', [FriendController::class, 'findNewFriendPaginate']);
 });
