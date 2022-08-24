@@ -1,0 +1,48 @@
+services:
+    mariadb:
+        image: mariadb:latest
+        container_name: mariadb
+        ports:
+            - ${DB_PORT}:3306
+        environment:
+            MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+            MYSQL_DATABASE: "${DB_DATABASE}"
+        volumes:
+            - "./volumes/mariadb:/var/lib/mysql/"
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        links:
+            - mariadb
+        environment:
+            PMA_HOST: mariadb
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 1
+        ports:
+            - 8081:80
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+            - 6379:6379
+        volumes:
+            - "./volumes/redis:/data"
+    soketi:
+        image: quay.io/soketi/soketi:1.0-16-debian
+        container_name: soketi
+        environment:
+            SOKETI_DEBUG: "${SOKETI_DEBUG}"
+            SOKETI_DEFAULT_APP_ID: "${SOKETI_DEFAULT_APP_ID}"
+            SOKETI_DEFAULT_APP_KEY: "${SOKETI_DEFAULT_APP_KEY}"
+            SOKETI_DEFAULT_APP_SECRET: "${SOKETI_DEFAULT_APP_SECRET}"
+        ports:
+            - ${SOKETI_PORT}:6001
+    meilisearch:
+        image: getmeili/meilisearch:v0.27.2
+        container_name: meilisearch
+        environment:
+            MEILI_MASTER_KEY: "${MEILI_APP_KEY}"
+        volumes:
+            - "./volumes/meili_data:/meili_data"
+        ports:
+            - ${MEILI_PORT}:7700
