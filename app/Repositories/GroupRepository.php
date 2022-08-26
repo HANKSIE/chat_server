@@ -4,7 +4,6 @@ namespace App\Repositories;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class GroupRepository
 {
@@ -27,56 +26,50 @@ class GroupRepository
 
     public function recentContactPaginate($userID, $isOneToOne, $perPage)
     {
-        $data = DB::table('groups')
-            ->selectRaw(
-                "MAX(m.id) AS mid,
-                m.group_id AS gid,
-                (
-                    SELECT CAST(
-                        SUM(
-                            CASE WHEN messages.group_id = m.group_id AND messages.id >
-                                (
-                                    CASE WHEN message_read.message_id IS NULL
-                                    THEN 0 ELSE message_read.message_id END
-                                )
-                            THEN 1 ELSE 0 END
-                        ) AS INT
-                    )
-                    FROM messages
-                    INNER JOIN message_read ON message_read.group_id = m.group_id AND message_read.user_id = ?
-                ) AS unread
-                ")
+        $subQuery = Message::selectRaw("MAX(messages.id)")
+            ->whereHas('group.members', function ($query) use ($userID) {
+                $query->where('group_members.user_id', $userID);
+            })
+            ->groupBy('group_id')
+            ->latest('id');
+        $mainQuery = Message::selectRaw('
+            *,
+            (
+                SELECT CAST(
+                    SUM(
+                        CASE WHEN m.group_id = messages.group_id AND m.id >
+                            (
+                                CASE WHEN message_read.message_id IS NULL
+                                THEN 0 ELSE message_read.message_id END
+                            )
+                        THEN 1 ELSE 0 END
+                    ) AS INT
+                )
+                FROM messages AS m
+                INNER JOIN message_read ON message_read.group_id = messages.group_id AND message_read.user_id = ?
+            ) AS unread'
+        )
             ->setBindings([$userID])
-            ->join('group_members', 'group_members.group_id', '=', 'groups.id')
-            ->join('messages AS m', 'm.group_id', '=', 'groups.id')
-            ->where([
-                'group_members.user_id' => $userID,
-                'groups.is_one_to_one' => $isOneToOne,
-                'groups.deleted_at' => null,
-            ])
-            ->groupBy('m.group_id')
-            ->orderByDesc('mid')
-            ->get();
+            ->whereIn('id', $subQuery)
+            ->with(
+                $isOneToOne ?
+                [
+                    'group.members' => function ($query) use ($userID) {
+                        $query->where('group_members.user_id', '!=', $userID);
+                    },
+                ] : 'group'
+            )
+            ->latest('id');
 
-        $mids = $data->map(function ($data) {return $data->mid;});
-        $unreads = $data->map(function ($data) {return $data->unread;});
-
-        $paginate = Message::whereIn('id', $mids)->with(
-            $isOneToOne ?
-            [
-                'group.members' => function ($query) use ($userID) {
-                    $query->where('group_members.user_id', '!=', $userID);
-                },
-            ] : 'group'
-        )->latest('id')
+        $paginate = $mainQuery
             ->cursorPaginate($perPage)
             ->withQueryString();
 
-        return tap($paginate, function ($paginate) use ($unreads) {
-            return $paginate->getCollection()->transform(function ($message, $i) use ($unreads) {
+        return tap($paginate, function ($paginate) {
+            return $paginate->getCollection()->transform(function ($dirtyMsg) {
                 return [
-                    'message' => $message,
-                    'unread' => $unreads[$i],
+                    'message' => collect($dirtyMsg)->except('unread')->toArray(),
+                    'unread' => $dirtyMsg->unread,
                 ];
             });
         });

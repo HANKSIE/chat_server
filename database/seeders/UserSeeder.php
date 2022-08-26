@@ -49,7 +49,7 @@ class UserSeeder extends Seeder
             MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id]);
             $user1->friends()->attach($user2, ['group_id' => $group->id]);
             $user2->friends()->attach($user1, ['group_id' => $group->id]);
-            collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])->each(function ($data) use ($group, $user2) {
+            collect(range(1, 15))->each(function ($data) use ($group, $user2) {
                 tap($group->messages()->create(['body' => $data]), function ($message) use ($user2) {
                     $message->user()->associate($user2);
                     $message->save();
