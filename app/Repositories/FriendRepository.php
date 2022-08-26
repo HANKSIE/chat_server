@@ -81,21 +81,31 @@ class FriendRepository
 
     public function paginate($userID, $keyword, $perPage)
     {
-        $friendIDs = $this->getAllIDs($userID);
-        if (count($friendIDs) === 0) { // 回傳data為空的simple paginate ($friendsIDs為空search->whereIn會丟出exception)
-            return User::find($userID)->friends()->simplePaginate($perPage)->withQueryString();
-        }
+        $paginate = null;
 
-        $paginate = User::search($keyword)
-            ->whereIn('id', $friendIDs)
-            ->query(function ($query) use ($userID) {
-                $query->with(['groups' => function ($query) use ($userID) {
-                    $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
-                        $query->where('user_id', $userID);
+        $setIntersectGroupQuery = function ($query) use ($userID) {
+            $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
+                $query->where('user_id', $userID);
+            });
+        };
+
+        if (strlen($keyword) === 0) {
+            $paginate = User::find($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
+                $setIntersectGroupQuery($query);
+            })->simplePaginate($perPage)->withQueryString();
+        } else {
+            $friendIDs = $this->getAllIDs($userID);
+            $paginate = User::search($keyword)
+                ->when(!empty($friendIDs), function ($query) use ($friendIDs) {
+                    $query->whereIn('id', $friendIDs);
+                })
+                ->query(function ($query) use ($setIntersectGroupQuery) {
+                    $query->with('groups', function ($query) use ($setIntersectGroupQuery) {
+                        $setIntersectGroupQuery($query);
                     });
-                }]);
-            })
-            ->simplePaginate($perPage)->withQueryString();
+                })
+                ->simplePaginate($perPage)->withQueryString();
+        }
 
         return tap($paginate, function ($paginate) {
             return $paginate->getCollection()->transform(function ($user) {
@@ -113,9 +123,13 @@ class FriendRepository
 
     public function findNewFriendPaginate($userID, $keyword, $perPage)
     {
-        $paginate = User::search($keyword)->simplePaginate($perPage)->withQueryString();
+        $paginate = strlen($keyword) === 0 ?
+        User::simplePaginate($perPage)->withQueryString() :
+        User::search($keyword)->simplePaginate($perPage)->withQueryString();
+
         $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
-        $statuses = DB::table('users')->selectRaw("(CASE
+
+        $states = DB::table('users')->selectRaw("(CASE
             WHEN users.id = ? THEN 1
             WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
             THEN 2
@@ -124,19 +138,20 @@ class FriendRepository
             WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = ? AND friend_requests.recipient_id = users.id)
             THEN 4
             ELSE 0
-            END) AS status
+            END) AS state
         ",
             collect()->range(1, 4)->map(function () use ($userID) {
                 return $userID;
             })->toArray()
         )->whereIn('id', $ids)->orderBy('id')->get()->map(function ($data) {
-            return $data->status;
+            return $data->state;
         });
-        return tap($paginate, function ($paginate) use ($statuses) {
-            return $paginate->getCollection()->transform(function ($user, $i) use ($statuses) {
+
+        return tap($paginate, function ($paginate) use ($states) {
+            return $paginate->getCollection()->transform(function ($user, $i) use ($states) {
                 return [
                     'user' => $user,
-                    'status' => $statuses[$i],
+                    'state' => $states[$i],
                 ];
             });
         });
@@ -153,7 +168,7 @@ class FriendRepository
     {
         return tap(User::find($userID)
                 ->{$type == 'receive' ? "friendRequestsToMe" : "friendRequestsFromMe"}()
-                ->cursorPaginate($perPage)
+                ->simplePaginate($perPage)
                 ->withQueryString(), function ($paginate) use ($type) {
                 $paginate->getCollection()->transform(function ($req) use ($type) {
                     return $req->{$type == 'receive' ? 'sender' : 'recipient'};

@@ -47,9 +47,8 @@ class GroupRepository
                 )
                 FROM messages AS m
                 INNER JOIN message_read ON message_read.group_id = messages.group_id AND message_read.user_id = ?
-            ) AS unread'
+            ) AS unread', [$userID]
         )
-            ->setBindings([$userID])
             ->whereIn('id', $subQuery)
             ->with(
                 $isOneToOne ?
@@ -62,7 +61,7 @@ class GroupRepository
             ->latest('id');
 
         $paginate = $mainQuery
-            ->cursorPaginate($perPage)
+            ->simplePaginate($perPage)
             ->withQueryString();
 
         return tap($paginate, function ($paginate) {
