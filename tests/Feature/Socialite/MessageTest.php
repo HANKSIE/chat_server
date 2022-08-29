@@ -62,7 +62,7 @@ class MessageTest extends TestCase
         $group = Group::find(1);
         Sanctum::actingAs($user);
         $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => null]);
-        $this->putJson(route('message.mark-as-read', [1]))->assertStatus(Response::HTTP_NO_CONTENT);
+        $this->postJson(route('message.mark-as-read', [1]))->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => $group->latestMessage->id]);
         Event::assertDispatched(MarkAsRead::class);
     }

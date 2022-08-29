@@ -92,7 +92,7 @@ class FriendRepository
         if (strlen($keyword) === 0) {
             $paginate = User::find($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
                 $setIntersectGroupQuery($query);
-            })->simplePaginate($perPage)->withQueryString();
+            })->cursorPaginate($perPage)->withQueryString();
         } else {
             $friendIDs = $this->getAllIDs($userID);
             $paginate = User::search($keyword)
@@ -107,24 +107,24 @@ class FriendRepository
                 ->simplePaginate($perPage)->withQueryString();
         }
 
-        return tap($paginate, function ($paginate) {
-            return $paginate->getCollection()->transform(function ($user) {
-                $group = $user->groups[0];
-                unset($group->pivot);
-                unset($group->latestMessage);
-                unset($user->groups);
-                return [
-                    'user' => $user,
-                    'group_id' => $group->id,
-                ];
-            });
+        $paginate->{strlen($keyword) === 0 ? 'throughWhenSerialize' : 'through'}(function ($user) {
+            $group = $user->groups[0];
+            unset($group->pivot);
+            unset($group->latestMessage);
+            unset($user->groups);
+            return [
+                'user' => $user,
+                'group_id' => $group->id,
+            ];
         });
+
+        return $paginate;
     }
 
     public function findNewFriendPaginate($userID, $keyword, $perPage)
     {
         $paginate = strlen($keyword) === 0 ?
-        User::simplePaginate($perPage)->withQueryString() :
+        User::cursorPaginate($perPage)->withQueryString() :
         User::search($keyword)->simplePaginate($perPage)->withQueryString();
 
         $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
@@ -147,14 +147,14 @@ class FriendRepository
             return $data->state;
         });
 
-        return tap($paginate, function ($paginate) use ($states) {
-            return $paginate->getCollection()->transform(function ($user, $i) use ($states) {
-                return [
-                    'user' => $user,
-                    'state' => $states[$i],
-                ];
-            });
+        $paginate->{strlen($keyword) === 0 ? 'throughWhenSerialize' : 'through'}(function ($user, $i) use ($states) {
+            return [
+                'user' => $user,
+                'state' => $states[$i],
+            ];
         });
+
+        return $paginate;
     }
 
     private function getAllIDs($userID)
@@ -170,7 +170,7 @@ class FriendRepository
                 ->{$type == 'receive' ? "friendRequestsToMe" : "friendRequestsFromMe"}()
                 ->simplePaginate($perPage)
                 ->withQueryString(), function ($paginate) use ($type) {
-                $paginate->getCollection()->transform(function ($req) use ($type) {
+                $paginate->through(function ($req) use ($type) {
                     return $req->{$type == 'receive' ? 'sender' : 'recipient'};
                 });
             });

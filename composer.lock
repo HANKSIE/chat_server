@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c9cb25d78d150a7cd844ec89bcc2a280",
+    "content-hash": "6a71a796bbc583b892954b30a9d96261",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -947,6 +947,54 @@
                 }
             ],
             "time": "2022-06-09T08:26:02+00:00"
+        },
+        {
+            "name": "hanksie/laravel-cursor-paginator-through-when-serialize",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize.git",
+                "reference": "982c9365aedbb1179ee6ab5e508fab03c0171171"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HANKSIE/laravel-cursor-paginator-through-when-serialize/zipball/982c9365aedbb1179ee6ab5e508fab03c0171171",
+                "reference": "982c9365aedbb1179ee6ab5e508fab03c0171171",
+                "shasum": ""
+            },
+            "require-dev": {
+                "orchestra/testbench": "6.x-dev",
+                "phpunit/phpunit": "9.5.x-dev"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Hanksie\\CursorPaginator\\CursorPaginatorProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hanksie\\CursorPaginator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "hanksie",
+                    "email": "kkuuccff@gmail.com"
+                }
+            ],
+            "description": "add a method named throughWhenSerialize() to register callback for transforming paginator's data when serializing",
+            "support": {
+                "issues": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize/issues",
+                "source": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize/tree/v0.1.0"
+            },
+            "time": "2022-08-29T01:03:53+00:00"
         },
         {
             "name": "http-interop/http-factory-guzzle",

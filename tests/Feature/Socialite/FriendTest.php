@@ -103,11 +103,88 @@ class FriendTest extends TestCase
         FriendRequest::create($reqData);
         Sanctum::actingAs($user1);
         $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id]);
-        $this->delete(route('unfriend'), ['friend_id' => $user2->id])->assertNoContent();
+        $this->delete(route('friend.unfriend'), ['friend_id' => $user2->id])->assertNoContent();
         $groupID = $res->getOriginalContent()['group_id'];
         $this->assertNotNull(Group::withTrashed()->find($groupID));
         $this->assertDatabaseMissing('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
         $this->assertDatabaseMissing('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
         Event::assertDispatched(UnFriend::class);
     }
+
+    public function test_friend_paginate()
+    {
+        $this->seed();
+        $user1 = User::find(1);
+        Sanctum::actingAs($user1);
+        $res = $this->getJson(
+            route('friend.paginate',
+                [
+                    'per_page' => 5,
+                ]
+            ));
+        $res
+            ->assertOk()
+            ->assertJson(function (AssertableJson $json) {
+                $json
+                    ->has('data.0', function ($json) {
+                        $json->whereAll(['user.id' => 15, 'group_id' => 1]);
+                    })
+                    ->has('data.1', function ($json) {
+                        $json->whereAll(['user.id' => 16, 'group_id' => 2]);
+                    })
+                    ->count('data', 2)
+                    ->etc();
+            });
+    }
+
+    public function test_find_new_friend_paginate()
+    {
+        $this->seed();
+        $user1 = User::find(1);
+        Sanctum::actingAs($user1);
+        $res = $this->getJson(
+            route('friend.find-new-friend-paginate',
+                [
+                    'per_page' => 5,
+                ]
+            ));
+        $res
+            ->assertOk()
+            ->assertJson(function (AssertableJson $json) {
+                collect()->range(0, 4)->each(function ($i) use ($json) {
+                    $json
+                        ->has("data.$i", function ($json) use ($i) {
+                            $json->where('user.id', $i + 1)->where('state', $i === 0 ? '1' : '0');
+                        });
+                });
+
+                $json->count('data', 5)->etc();
+            });
+    }
+
+    public function test_friend_request_paginate()
+    {
+        $this->seed();
+        $user1 = User::find(1);
+        Sanctum::actingAs($user1);
+        $res = $this->getJson(
+            route('friend.request.paginate',
+                [
+                    'type' => 'receive',
+                    'per_page' => 5,
+                ]
+            ));
+
+        $res
+            ->assertOk()
+            ->assertJson(function (AssertableJson $json) {
+                $json
+                    ->has('data.0', function ($json) {
+                        $json->where('id', 17)->etc();
+                    })
+                    ->etc()
+                    ->count('data', 1);
+            });
+    }
+
 }

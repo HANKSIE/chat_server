@@ -61,17 +61,17 @@ class GroupRepository
             ->latest('id');
 
         $paginate = $mainQuery
-            ->simplePaginate($perPage)
+            ->cursorPaginate($perPage)
             ->withQueryString();
 
-        return tap($paginate, function ($paginate) {
-            return $paginate->getCollection()->transform(function ($dirtyMsg) {
-                return [
-                    'message' => collect($dirtyMsg)->except('unread')->toArray(),
-                    'unread' => $dirtyMsg->unread,
-                ];
-            });
+        $paginate->throughWhenSerialize(function ($dirtyMsg) {
+            return [
+                'message' => collect($dirtyMsg)->except('unread')->toArray(),
+                'unread' => $dirtyMsg->unread,
+            ];
         });
+
+        return $paginate;
     }
 
     public function getIntersectionGroups($user1ID, $user2ID, $isOneToOne)

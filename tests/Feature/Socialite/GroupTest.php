@@ -26,7 +26,7 @@ class GroupTest extends TestCase
             route('group.recent-contact.paginate',
                 [
                     'is_one_to_one' => true,
-                    "per_page" => 5,
+                    'per_page' => 5,
                 ]
             ));
         $res
@@ -39,6 +39,7 @@ class GroupTest extends TestCase
                     ->has('data.1', function ($json) {
                         $json->where('message.id', 15)->where('unread', '15');
                     })
+                    ->count('data', 2)
                     ->etc();
             });
     }
