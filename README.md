@@ -9,9 +9,9 @@
 
     `php artisan key:generate`
 
-4. Build services
+4. Build the environment
 
-    `cd ./environment/dev && docker-compose --env-file ../../.env up `
+    `docker-compose -f ./environments/dev/docker-compose.yml --env-file .env up -d`
 
 5. Initialize Meilisearch
 

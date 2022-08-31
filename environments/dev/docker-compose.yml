@@ -48,6 +48,7 @@ services:
             - ${MEILI_PORT}:7700
     mailhog:
         image: mailhog/mailhog
+        container_name: mailhog
         logging:
             driver: "none"
         ports:
