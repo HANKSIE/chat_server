@@ -29,7 +29,7 @@ class EmailVerificationTest extends TestCase
         );
 
         $this->actingAs($user)->get($verificationUrl)->assertJson(function (AssertableJson $json) use ($user) {
-            $json->where('verified', true);
+            $json->where('status', __('auth.email_verified'));
         });
 
         Event::assertDispatched(Verified::class);

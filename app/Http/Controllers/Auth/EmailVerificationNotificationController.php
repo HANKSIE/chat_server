@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 
 class EmailVerificationNotificationController extends Controller
@@ -17,11 +16,11 @@ class EmailVerificationNotificationController extends Controller
     public function store(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['verified' => true, 'message' => __('auth.email_verified')]);
+            return response()->json(['status' => __('auth.email_verified')]);
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return response()->json(['verified' => true, 'message' =>  __('auth.email_verified')]);
+        return response()->json(['status' => __('auth.verification_link_sent')]);
     }
 }

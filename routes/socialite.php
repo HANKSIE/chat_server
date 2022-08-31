@@ -5,15 +5,15 @@ use App\Http\Controllers\Socialite\GroupController;
 use App\Http\Controllers\Socialite\MessageController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('friends')->group(function () {
         Route::get('search', [FriendController::class, 'paginate'])->name('friend.paginate');
-        Route::delete('', [FriendController::class, 'unfriend'])->name('friend.unfriend');
+        Route::post('unfriend', [FriendController::class, 'unfriend'])->name('friend.unfriend');
         Route::prefix('request')->group(function () {
             Route::post('send', [FriendController::class, 'sendRequest'])->name('friend.request.send');
             Route::post('accept', [FriendController::class, 'acceptRequest'])->name('friend.request.accept');
             Route::post('deny', [FriendController::class, 'denyRequest'])->name('friend.request.deny');
-            Route::delete('revoke', [FriendController::class, 'revokeRequest'])->name('friend.request.revoke');
+            Route::post('revoke', [FriendController::class, 'revokeRequest'])->name('friend.request.revoke');
         });
         Route::prefix('requests')->group(function () {
             Route::get('search', [FriendController::class, 'requestsPaginate'])->name('friend.request.paginate');

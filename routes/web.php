@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,9 +13,3 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/socialite.php';
-
-Route::middleware('auth:sanctum')->group(function () {;
-    Route::get('/user', function (Request $request) {
-        return response()->json(['user' => $request->user()]);
-    });
-});

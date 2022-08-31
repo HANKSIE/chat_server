@@ -89,7 +89,7 @@ class FriendTest extends TestCase
         $reqData = ['sender_id' => $user1->id, 'recipient_id' => $user2->id];
         FriendRequest::create($reqData);
         Sanctum::actingAs($user1);
-        $this->deleteJson(route('friend.request.revoke'), ['recipient_id' => $user2->id])
+        $this->postJson(route('friend.request.revoke'), ['recipient_id' => $user2->id])
             ->assertStatus(Response::HTTP_NO_CONTENT);
         $this->assertDatabaseMissing('friend_requests', $reqData);
     }
@@ -103,7 +103,7 @@ class FriendTest extends TestCase
         FriendRequest::create($reqData);
         Sanctum::actingAs($user1);
         $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id]);
-        $this->delete(route('friend.unfriend'), ['friend_id' => $user2->id])->assertNoContent();
+        $this->postJson(route('friend.unfriend'), ['friend_id' => $user2->id])->assertNoContent();
         $groupID = $res->getOriginalContent()['group_id'];
         $this->assertNotNull(Group::withTrashed()->find($groupID));
         $this->assertDatabaseMissing('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
