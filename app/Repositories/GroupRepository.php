@@ -64,7 +64,7 @@ class GroupRepository
             ->cursorPaginate($perPage)
             ->withQueryString();
 
-        $paginate->throughWhenSerialize(function ($dirtyMsg) {
+        $paginate->through(function ($dirtyMsg) {
             return [
                 'message' => collect($dirtyMsg)->except('unread')->toArray(),
                 'unread' => $dirtyMsg->unread,

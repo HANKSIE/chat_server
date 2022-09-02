@@ -954,12 +954,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize.git",
-                "reference": "982c9365aedbb1179ee6ab5e508fab03c0171171"
+                "reference": "7e203fe8ac674bf7880c983d9dc9d52fb9e24384"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/HANKSIE/laravel-cursor-paginator-through-when-serialize/zipball/982c9365aedbb1179ee6ab5e508fab03c0171171",
-                "reference": "982c9365aedbb1179ee6ab5e508fab03c0171171",
+                "url": "https://api.github.com/repos/HANKSIE/laravel-cursor-paginator-through-when-serialize/zipball/7e203fe8ac674bf7880c983d9dc9d52fb9e24384",
+                "reference": "7e203fe8ac674bf7880c983d9dc9d52fb9e24384",
                 "shasum": ""
             },
             "require-dev": {
@@ -989,12 +989,12 @@
                     "email": "kkuuccff@gmail.com"
                 }
             ],
-            "description": "add a method named throughWhenSerialize() to register callback for transforming paginator's data when serializing",
+            "description": "add a method to register callback for transforming paginator's data when serializing",
             "support": {
                 "issues": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize/issues",
                 "source": "https://github.com/HANKSIE/laravel-cursor-paginator-through-when-serialize/tree/v0.1.0"
             },
-            "time": "2022-08-29T01:03:53+00:00"
+            "time": "2022-09-02T09:12:15+00:00"
         },
         {
             "name": "http-interop/http-factory-guzzle",

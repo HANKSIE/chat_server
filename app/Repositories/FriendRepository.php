@@ -107,7 +107,7 @@ class FriendRepository
                 ->simplePaginate($perPage)->withQueryString();
         }
 
-        $paginate->{strlen($keyword) === 0 ? 'throughWhenSerialize' : 'through'}(function ($user) {
+        $paginate->through(function ($user) {
             $group = $user->groups[0];
             unset($group->pivot);
             unset($group->latestMessage);
@@ -147,7 +147,7 @@ class FriendRepository
             return $data->state;
         });
 
-        $paginate->{strlen($keyword) === 0 ? 'throughWhenSerialize' : 'through'}(function ($user, $i) use ($states) {
+        $paginate->through(function ($user, $i) use ($states) {
             return [
                 'user' => $user,
                 'state' => $states[$i],
