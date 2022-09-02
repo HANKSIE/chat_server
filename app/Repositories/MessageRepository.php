@@ -9,7 +9,7 @@ class MessageRepository
 
     public function create($userID, $groupID, $body)
     {
-        $message = Group::find($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
+        $message = Group::findOrFail($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
         return $message->load(
             $message->group->is_one_to_one ?
             [
@@ -21,7 +21,7 @@ class MessageRepository
 
     public function paginate($groupID, $perPage)
     {
-        return Group::find($groupID)
+        return Group::findOrFail($groupID)
             ->messages()
             ->with('user')
             ->orderBy('id', 'desc')
@@ -31,11 +31,8 @@ class MessageRepository
 
     public function markAsRead($userID, $groupID)
     {
-        $latestMessage = Group::find($groupID)->latestMessage;
-        $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->first();
-        if (is_null($latestMessage)) {
-            return $record;
-        }
+        $latestMessage = Group::findOrFail($groupID)->latestMessage;
+        $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->firstOrFail();
         $record->message_id = $latestMessage->id;
         $record->save();
         return $record->fresh();

@@ -18,13 +18,13 @@ class FriendRepository
 
     public function createRequest($senderID, $recipientID)
     {
-        $req = User::find($senderID)->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $recipientID]);
+        $req = User::findOrFail($senderID)->friendRequestsFromMe()->firstOrCreate(['recipient_id' => $recipientID]);
         return $req;
     }
 
     public function denyRequest($senderID, $recipientID)
     {
-        return User::find($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->delete();
+        return User::findOrFail($recipientID)->friendRequestsToMe()->where(['sender_id' => $senderID])->delete();
     }
 
     public function acceptRequest($senderID, $recipientID)
@@ -43,13 +43,13 @@ class FriendRepository
 
     public function hasRequest($senderID, $recipientID)
     {
-        return User::find($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
+        return User::findOrFail($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
     }
 
     private function beFriend($senderID, $recipientID)
     {
-        $sender = User::find($senderID);
-        $recipient = User::find($recipientID);
+        $sender = User::findOrFail($senderID);
+        $recipient = User::findOrFail($recipientID);
         return DB::transaction(function () use ($sender, $recipient) {
             $group = Group::create(['is_one_to_one' => true]);
             $this->groupRepository->join($recipient->id, $group->id);
@@ -64,8 +64,8 @@ class FriendRepository
 
     public function unFriend($user1ID, $user2ID)
     {
-        $user1 = User::find($user1ID);
-        $user2 = User::find($user2ID);
+        $user1 = User::findOrFail($user1ID);
+        $user2 = User::findOrFail($user2ID);
         $groups = $this->groupRepository->getIntersectionGroups($user1->id, $user2->id, true);
         if (count($groups) !== 0) {
             $group = $groups[0];
@@ -90,7 +90,7 @@ class FriendRepository
         };
 
         if (strlen($keyword) === 0) {
-            $paginate = User::find($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
+            $paginate = User::findOrFail($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
                 $setIntersectGroupQuery($query);
             })->cursorPaginate($perPage)->withQueryString();
         } else {
@@ -159,14 +159,14 @@ class FriendRepository
 
     private function getAllIDs($userID)
     {
-        return User::find($userID)->friends()->select('friends.friend_id')->get()->map(function ($data) {
+        return User::findOrFail($userID)->friends()->select('friends.friend_id')->get()->map(function ($data) {
             return $data->friend_id;
         })->toArray();
     }
 
     public function requestsPaginate($userID, $type, $perPage)
     {
-        return tap(User::find($userID)
+        return tap(User::findOrFail($userID)
                 ->{$type == 'receive' ? "friendRequestsToMe" : "friendRequestsFromMe"}()
                 ->simplePaginate($perPage)
                 ->withQueryString(), function ($paginate) use ($type) {
