@@ -32,6 +32,9 @@ class MessageRepository
     public function markAsRead($userID, $groupID)
     {
         $latestMessage = Group::findOrFail($groupID)->latestMessage;
+        if (is_null($latestMessage)) {
+            return null;
+        }
         $record = MessageRead::where(['user_id' => $userID, 'group_id' => $groupID])->firstOrFail();
         $record->message_id = $latestMessage->id;
         $record->save();

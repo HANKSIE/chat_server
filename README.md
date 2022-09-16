@@ -11,7 +11,7 @@
 
 4. Build the environment
 
-    `docker-compose -f ./environments/dev/docker-compose.yml --env-file .env up -d`
+    `cd ./environments/dev/ && docker-compose --env-file ../../.env up -d`
 
 5. Initialize Meilisearch
 
