@@ -88,24 +88,17 @@ class FriendRepository
                 $query->where('user_id', $userID);
             });
         };
-
-        if (strlen($keyword) === 0) {
-            $paginate = User::findOrFail($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
-                $setIntersectGroupQuery($query);
-            })->cursorPaginate($perPage)->withQueryString();
-        } else {
-            $friendIDs = $this->getAllIDs($userID);
-            $paginate = User::search($keyword)
-                ->when(!empty($friendIDs), function ($query) use ($friendIDs) {
-                    $query->whereIn('id', $friendIDs);
-                })
+        $friendIDs = $this->getAllIDs($userID);
+        $paginate = (strlen($keyword) === 0 || empty($friendIDs) ? User::findOrFail($userID)->friends()->with('groups', function ($query) use ($setIntersectGroupQuery) {
+            $setIntersectGroupQuery($query);
+        })->cursorPaginate($perPage) :
+            User::search($keyword)->whereIn('id', $friendIDs)
                 ->query(function ($query) use ($setIntersectGroupQuery) {
                     $query->with('groups', function ($query) use ($setIntersectGroupQuery) {
                         $setIntersectGroupQuery($query);
                     });
                 })
-                ->simplePaginate($perPage)->withQueryString();
-        }
+                ->simplePaginate($perPage))->withQueryString();
 
         $paginate->through(function ($user) {
             $group = $user->groups[0];
