@@ -139,15 +139,9 @@ return [
                 'updateFilterableAttributes' => ['id'],
                 'updateSearchableAttributes' => ['name'],
             ],
-            \App\Models\Message::class => [
-                'updateFilterableAttributes' => ['group_id'],
-                'updateSearchableAttributes' => ['body'],
-                'updateSortableAttributes' => ['id'],
-            ],
         ],
         'imports' => [
             \App\Models\User::class,
-            \App\Models\Message::class,
         ],
     ],
 
