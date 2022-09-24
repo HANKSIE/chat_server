@@ -5,7 +5,9 @@ namespace Tests\Feature\Socialite;
 use App\Events\Socialite\Message\MarkAsRead;
 use App\Events\Socialite\Message\SendMessage;
 use App\Models\Group;
+use App\Models\Message;
 use App\Models\User;
+use App\Repositories\GroupRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Response;
@@ -26,33 +28,48 @@ class MessageTest extends TestCase
         $this->seed();
     }
 
+    private function getIntersectionGroup($user1, $user2)
+    {
+        return $this->app->make(GroupRepository::class)->getIntersectionGroups($user1->id, $user2->id, true)[0];
+    }
+
     public function test_send_message()
     {
         Event::fake();
         $user1 = User::find(1);
         $user2 = User::find(15);
-        $group = $user1->groups()->oneToOne()->whereHas('members', function ($query) use ($user2) {
-            $query->where('user_id', $user2->id);
-        })->first();
-        $body = $this->faker->text();
+        $group = $this->getIntersectionGroup($user1, $user2);
         Sanctum::actingAs($user1);
-        $res = $this->postJson("group/{$group->id}/messages", ['body' => $body])
-            ->assertOk()
-            ->assertJson(function (AssertableJson $json) use ($group, $user1, $body) {
+        $body = $this->faker->text();
+        $res = $this->postJson("group/{$group->id}/messages", ['body' => $body]);
+        $messageID = $res->getOriginalContent()['message']['id'];
+        $message = Message::find($messageID);
+        $res->assertOk()
+            ->assertJson(function (AssertableJson $json) use ($group, $user1, $message) {
                 $json->whereAll([
-                    'message.body' => $body,
+                    'message.body' => $message->body,
                     'message.group.id' => $group->id,
                     'message.user.id' => $user1->id,
                 ])->has('message.group.members', 2)
                     ->etc();
             });
-        $messageID = $res->getOriginalContent()['message']['id'];
-
-        Event::assertDispatched(function (SendMessage $event) use ($messageID) {
-            return $event->message->id === $messageID;
+        Event::assertDispatched(function (SendMessage $event) use ($message) {
+            return $event->message->id === $message->id;
         });
-        $this->assertDatabaseHas('messages', ['id' => $messageID, 'group_id' => $group->id, 'body' => $body, 'user_id' => $user1->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $messageID]);
+        $this->assertDatabaseHas('messages', ['id' => $message->id, 'group_id' => $group->id, 'user_id' => $user1->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $message->id]);
+    }
+
+    public function test_send_message_forbidden()
+    {
+        Event::fake();
+        $user1 = User::find(1);
+        $user2 = User::find(15);
+        Sanctum::actingAs($user1);
+        $group = $this->getIntersectionGroup($user1, $user2);
+        $this->postJson(route('friend.unfriend'), ['friend_id' => 15]);
+        $this->postJson("group/{$group->id}/messages", ['body' => 'any'])->assertForbidden();
+        Event::assertDispatched(SendMessage::class, 1); // only dispatched when unfriend.
     }
 
     public function test_message_mark_as_read()

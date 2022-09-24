@@ -20,7 +20,7 @@ class MessageController extends Controller
         $request->validate([
             'body' => ['required', 'string'],
         ]);
-        $message = $this->messageService->create(auth()->user()->id, $groupID, $request->body);
+        $message = $this->messageService->createAndMarkAsRead(auth()->user()->id, $groupID, $request->body);
         return response()->json(['message' => $message]);
     }
 

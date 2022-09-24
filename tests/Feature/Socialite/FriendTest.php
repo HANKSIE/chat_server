@@ -5,7 +5,7 @@ namespace Tests\Feature\Socialite;
 use App\Events\Socialite\Friend\BeFriend;
 use App\Events\Socialite\Friend\UnFriend;
 use App\Models\FriendRequest;
-use App\Models\Group;
+use App\Models\GroupMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
@@ -105,7 +105,8 @@ class FriendTest extends TestCase
         $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id]);
         $this->postJson(route('friend.unfriend'), ['friend_id' => $user2->id])->assertNoContent();
         $groupID = $res->getOriginalContent()['group_id'];
-        $this->assertNotNull(Group::withTrashed()->find($groupID));
+        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user1->id, 'group_id' => $groupID])->first());
+        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user2->id, 'group_id' => $groupID])->first());
         $this->assertDatabaseMissing('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
         $this->assertDatabaseMissing('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
         Event::assertDispatched(UnFriend::class);

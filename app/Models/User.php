@@ -51,7 +51,7 @@ class User extends Authenticatable
 
     public function groups()
     {
-        return $this->belongsToMany(Group::class, 'group_members');
+        return $this->belongsToMany(Group::class, GroupMember::class)->whereNull('group_members.deleted_at');
     }
 
     public function friendRequestsToMe()
@@ -62,16 +62,6 @@ class User extends Authenticatable
     public function friendRequestsFromMe()
     {
         return $this->hasMany(FriendRequest::class, 'sender_id');
-    }
-
-    public function groupRequestsToMe()
-    {
-        return $this->hasMany(GroupRequest::class, 'recipient_id');
-    }
-
-    public function groupRequestsFromMe()
-    {
-        return $this->hasMany(GroupRequest::class, 'sender_id');
     }
 
     public function toSearchableArray()

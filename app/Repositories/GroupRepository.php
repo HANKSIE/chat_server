@@ -28,7 +28,7 @@ class GroupRepository
     {
         $subQuery = Message::selectRaw("MAX(messages.id)")
             ->whereHas('group.members', function ($query) use ($userID) {
-                $query->where('group_members.user_id', $userID);
+                $query->where(['group_members.user_id' => $userID, 'group_members.deleted_at' => null]);
             })
             ->groupBy('group_id')
             ->latest('id');
@@ -81,7 +81,7 @@ class GroupRepository
         }, function ($query) {
             $query->notOneToOne();
         })->whereHas('members', function ($query) use ($user2ID) {
-            $query->where('user_id', $user2ID);
+            $query->where(['group_members.user_id' => $user2ID, 'group_members.deleted_at' => null]);
         })->get();
     }
 

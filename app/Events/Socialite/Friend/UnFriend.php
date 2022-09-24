@@ -10,7 +10,6 @@ use Illuminate\Queue\InteractsWithQueue;
 class UnFriend implements ShouldBroadcast
 {
     use InteractsWithSockets, InteractsWithQueue;
-    public $afterCommit = true;
 
     private $userID;
     private $friendID;

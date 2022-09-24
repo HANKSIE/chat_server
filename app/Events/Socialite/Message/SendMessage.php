@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 class SendMessage implements ShouldBroadcast
 {
     use InteractsWithSockets, InteractsWithQueue;
-    public $afterCommit = true;
+
     /**
      * @var Message
      */

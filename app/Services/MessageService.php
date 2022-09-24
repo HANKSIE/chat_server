@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Events\Socialite\Message\MarkAsRead;
 use App\Events\Socialite\Message\SendMessage;
 use App\Repositories\MessageRepository;
+use Illuminate\Support\Facades\Gate;
 
 class MessageService
 {
@@ -14,11 +15,19 @@ class MessageService
         $this->messageRepository = $messageRepository;
     }
 
-    public function create($userID, $groupID, $body)
+    public function createAndMarkAsRead($userID, $groupID, $body)
     {
-        $message = $this->messageRepository->create($userID, $groupID, $body);
+        abort_if(Gate::denies('access-message', $groupID), 403, 'forbidden');
+
+        $data = $this->messageRepository->createAndMarkAsRead($userID, $groupID, $body);
+        $message = $data['message'];
+        $record = $data['message_read'];
+
+        if (!is_null($record)) {
+            broadcast(new MarkAsRead($record));
+        }
+
         broadcast(new SendMessage($message))->toOthers();
-        $this->markAsRead($userID, $groupID);
         return $message;
     }
 

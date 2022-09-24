@@ -18,7 +18,7 @@ class Group extends Model
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'group_members');
+        return $this->belongsToMany(User::class, GroupMember::class);
     }
 
     public function messages()
@@ -34,11 +34,6 @@ class Group extends Model
     public function latestMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();
-    }
-
-    public function requests()
-    {
-        return $this->hasMany(GroupRequest::class);
     }
 
     public function scopeNotOneToOne($query)

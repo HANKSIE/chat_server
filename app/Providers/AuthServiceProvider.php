@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Group;
+use App\Models\GroupMember;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -37,6 +38,11 @@ class AuthServiceProvider extends ServiceProvider
                 return false;
             }
             return $group->members->contains($user);
+        });
+
+        Gate::define('access-message', function ($user, $groupID) {
+            $record = GroupMember::where(['user_id' => $user->id, 'group_id' => $groupID])->first();
+            return !is_null($record);
         });
     }
 }

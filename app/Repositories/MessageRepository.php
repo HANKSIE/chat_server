@@ -3,6 +3,7 @@ namespace App\Repositories;
 
 use App\Models\Group;
 use App\Models\MessageRead;
+use Illuminate\Support\Facades\DB;
 
 class MessageRepository
 {
@@ -17,6 +18,23 @@ class MessageRepository
                 'group.members',
             ] : 'user'
         );
+    }
+
+    public function createAndMarkAsRead($userID, $groupID, $body)
+    {
+        return DB::transaction(function () use ($userID, $groupID, $body) {
+            $message = $this->create($userID, $groupID, $body);
+            $messageRead = null;
+
+            if (!is_null($userID)) {
+                $messageRead = $this->markAsRead($userID, $groupID);
+            }
+
+            return [
+                'message' => $message,
+                'message_read' => $messageRead,
+            ];
+        });
     }
 
     public function paginate($groupID, $perPage)

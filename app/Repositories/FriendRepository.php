@@ -3,6 +3,7 @@ namespace App\Repositories;
 
 use App\Models\FriendRequest;
 use App\Models\Group;
+use App\Models\GroupMember;
 use App\Models\MessageRead;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -69,10 +70,13 @@ class FriendRepository
         $groups = $this->groupRepository->getIntersectionGroups($user1->id, $user2->id, true);
         if (count($groups) !== 0) {
             $group = $groups[0];
-            DB::transaction(function () use ($user1, $user2, $group) {
+            $record1 = GroupMember::where(['user_id' => $user1->id, 'group_id' => $group->id])->firstOrFail();
+            $record2 = GroupMember::where(['user_id' => $user2->id, 'group_id' => $group->id])->firstOrFail();
+            DB::transaction(function () use ($user1, $user2, $record1, $record2) {
                 $user1->friends()->detach($user2->id);
                 $user2->friends()->detach($user1->id);
-                $group->delete();
+                $record1->delete();
+                $record2->delete();
             });
             return $group;
         }
