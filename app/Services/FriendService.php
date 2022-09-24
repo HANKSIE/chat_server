@@ -16,6 +16,7 @@ class FriendService
 
     public function createRequest($senderID, $recipientID)
     {
+        abort_if($senderID === $recipientID, 422, '$senderID cannot be equal to $recipientID.');
         if ($this->friendRepository->hasRequest($recipientID, $senderID)) {
             $group = $this->acceptRequest($recipientID, $senderID);
             return ['be_friend' => true, 'group_id' => $group->id];

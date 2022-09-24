@@ -116,12 +116,12 @@ class FriendRepository
 
     public function findNewFriendPaginate($userID, $keyword, $perPage)
     {
-        $paginate = strlen($keyword) === 0 ?
-        User::cursorPaginate($perPage)->withQueryString() :
-        User::search($keyword)->simplePaginate($perPage)->withQueryString();
+        $paginate = (strlen($keyword) === 0 ?
+            User::cursorPaginate($perPage) :
+            User::search($keyword)->simplePaginate($perPage)
+        )->withQueryString();
 
-        $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
-
+        $ids = $paginate->getCollection()->map(function ($user) {return $user->id;})->sort()->values();
         $states = DB::table('users')->selectRaw("(CASE
             WHEN users.id = ? THEN 1
             WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
@@ -136,14 +136,19 @@ class FriendRepository
             collect()->range(1, 4)->map(function () use ($userID) {
                 return $userID;
             })->toArray()
-        )->whereIn('id', $ids)->orderBy('id')->get()->map(function ($data) {
+        )->whereIn('id', $ids)->get()->map(function ($data) {
             return $data->state;
         });
 
-        $paginate->through(function ($user, $i) use ($states) {
+        $stateMap = [];
+        $states->each(function ($state, $i) use (&$stateMap, $ids) {
+            $stateMap[$ids[$i]] = $state;
+        });
+
+        $paginate->through(function ($user) use ($stateMap) {
             return [
                 'user' => $user,
-                'state' => $states[$i],
+                'state' => $stateMap[$user->id],
             ];
         });
 
