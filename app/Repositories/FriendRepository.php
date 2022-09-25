@@ -128,28 +128,27 @@ class FriendRepository
             User::search($keyword)->simplePaginate($perPage)
         )->withQueryString();
 
-        $ids = $paginate->getCollection()->map(function ($user) {return $user->id;})->sort()->values();
-        $states = DB::table('users')->selectRaw("(CASE
-            WHEN users.id = ? THEN 1
-            WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
-            THEN 2
-            WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = users.id AND friend_requests.recipient_id = ?)
-            THEN 3
-            WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = ? AND friend_requests.recipient_id = users.id)
-            THEN 4
-            ELSE 0
+        $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
+        $stateMap = [];
+        DB::table('users')->selectRaw(
+            "
+            id,
+            (CASE
+                WHEN users.id = ? THEN 1
+                WHEN EXISTS(SELECT id FROM friends WHERE friends.user_id = ? AND friends.friend_id = users.id)
+                THEN 2
+                WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = users.id AND friend_requests.recipient_id = ?)
+                THEN 3
+                WHEN EXISTS(SELECT id FROM friend_requests WHERE friend_requests.sender_id = ? AND friend_requests.recipient_id = users.id)
+                THEN 4
+                ELSE 0
             END) AS state
-        ",
+            ",
             collect()->range(1, 4)->map(function () use ($userID) {
                 return $userID;
             })->toArray()
-        )->whereIn('id', $ids)->get()->map(function ($data) {
-            return $data->state;
-        });
-
-        $stateMap = [];
-        $states->each(function ($state, $i) use (&$stateMap, $ids) {
-            $stateMap[$ids[$i]] = $state;
+        )->whereIn('id', $ids)->get()->each(function ($data) use (&$stateMap) {
+            $stateMap[$data->id] = $data->state;
         });
 
         $paginate->through(function ($user) use ($stateMap) {

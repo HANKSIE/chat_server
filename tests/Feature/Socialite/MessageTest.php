@@ -6,6 +6,7 @@ use App\Events\Socialite\Message\MarkAsRead;
 use App\Events\Socialite\Message\SendMessage;
 use App\Models\Group;
 use App\Models\Message;
+use App\Models\MessageRead;
 use App\Models\User;
 use App\Repositories\GroupRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,9 @@ class MessageTest extends TestCase
         Event::fake();
         $user1 = User::find(1);
         $user2 = User::find(15);
+
         $group = $this->getIntersectionGroup($user1, $user2);
+        $user2MessageRead = MessageRead::where(['user_id' => $user2->id, 'group_id' => $group->id])->first();
         Sanctum::actingAs($user1);
         $body = $this->faker->text();
         $res = $this->postJson("group/{$group->id}/messages", ['body' => $body]);
@@ -57,7 +60,8 @@ class MessageTest extends TestCase
             return $event->message->id === $message->id;
         });
         $this->assertDatabaseHas('messages', ['id' => $message->id, 'group_id' => $group->id, 'user_id' => $user1->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $message->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $message->id, 'latest_message_id' => $message->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $group->id, 'message_id' => $user2MessageRead->message_id, 'latest_message_id' => $message->id]);
     }
 
     public function test_send_message_forbidden()
@@ -85,9 +89,9 @@ class MessageTest extends TestCase
         $user = User::find(1);
         $group = Group::find(1);
         Sanctum::actingAs($user);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => null]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => null, 'unread' => 15]);
         $this->postJson(route('message.mark-as-read', [1]))->assertStatus(Response::HTTP_NO_CONTENT);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => $group->latestMessage->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user->id, 'group_id' => $group->id, 'message_id' => $group->latestMessage->id, 'unread' => 0]);
         Event::assertDispatched(MarkAsRead::class);
     }
 }

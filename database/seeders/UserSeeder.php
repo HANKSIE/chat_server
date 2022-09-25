@@ -45,16 +45,18 @@ class UserSeeder extends Seeder
             $group = Group::create(['is_one_to_one' => true]);
             $group->members()->attach($user1);
             $group->members()->attach($user2);
-            MessageRead::create(['user_id' => $user1->id, 'group_id' => $group->id]);
-            MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id]);
+
             $user1->friends()->attach($user2, ['group_id' => $group->id]);
             $user2->friends()->attach($user1, ['group_id' => $group->id]);
-            collect(range(1, 15))->each(function ($data) use ($group, $user2) {
-                tap($group->messages()->create(['body' => $data]), function ($message) use ($user2) {
-                    $message->user()->associate($user2);
-                    $message->save();
-                });
+            $latestMessageId = -1;
+            collect(range(1, 15))->each(function ($data) use ($group, $user2, &$latestMessageId) {
+                $message = $group->messages()->create(['body' => $data]);
+                $latestMessageId = $message->id;
+                $message->user()->associate($user2);
+                $message->save();
             });
+            MessageRead::create(['user_id' => $user1->id, 'group_id' => $group->id, 'unread' => 15, 'latest_message_id' => $latestMessageId]);
+            MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id, 'unread' => 0, 'message_id' => $latestMessageId, 'latest_message_id' => $latestMessageId]);
         });
     }
 }
