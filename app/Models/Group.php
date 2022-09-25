@@ -14,6 +14,7 @@ class Group extends Model
         'name',
         'avatar_url',
         'is_one_to_one',
+        'latest_message_id',
     ];
 
     public function members()
@@ -33,7 +34,7 @@ class Group extends Model
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latestOfMany();
+        return $this->belongsTo(Message::class, 'latest_message_id');
     }
 
     public function scopeNotOneToOne($query)

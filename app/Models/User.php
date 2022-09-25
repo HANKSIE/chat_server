@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Group::class, GroupMember::class)->whereNull('group_members.deleted_at');
     }
 
+    public function messageReads()
+    {
+        return $this->hasMany(MessageRead::class);
+    }
+
     public function friendRequestsToMe()
     {
         return $this->hasMany(FriendRequest::class, 'recipient_id');

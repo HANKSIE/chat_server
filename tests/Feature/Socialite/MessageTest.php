@@ -45,8 +45,7 @@ class MessageTest extends TestCase
         Sanctum::actingAs($user1);
         $body = $this->faker->text();
         $res = $this->postJson("group/{$group->id}/messages", ['body' => $body]);
-        $messageID = $res->getOriginalContent()['message']['id'];
-        $message = Message::find($messageID);
+        $message = Message::find($res->getOriginalContent()['message']['id']);
         $res->assertOk()
             ->assertJson(function (AssertableJson $json) use ($group, $user1, $message) {
                 $json->whereAll([
@@ -60,8 +59,9 @@ class MessageTest extends TestCase
             return $event->message->id === $message->id;
         });
         $this->assertDatabaseHas('messages', ['id' => $message->id, 'group_id' => $group->id, 'user_id' => $user1->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $message->id, 'latest_message_id' => $message->id]);
-        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $group->id, 'message_id' => $user2MessageRead->message_id, 'latest_message_id' => $message->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user1->id, 'group_id' => $group->id, 'message_id' => $message->id]);
+        $this->assertDatabaseHas('message_read', ['user_id' => $user2->id, 'group_id' => $group->id, 'message_id' => $user2MessageRead->message_id]);
+        $this->assertDatabaseHas('groups', ['id' => $group->id, 'latest_message_id' => $message->id]);
     }
 
     public function test_send_message_forbidden()

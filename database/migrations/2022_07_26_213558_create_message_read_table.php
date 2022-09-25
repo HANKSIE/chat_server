@@ -18,7 +18,6 @@ class CreateMessageReadTable extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('group_id')->constrained('groups');
             $table->foreignId('message_id')->nullable()->comment('當前已讀的message的id');
-            $table->foreignId('latest_message_id')->nullable()->comment('對應的group中id最大的message的id');
             $table->unsignedInteger('unread')->default(0)->comment('未讀數量');
             $table->timestamps();
         });

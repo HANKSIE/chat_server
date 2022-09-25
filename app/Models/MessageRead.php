@@ -11,7 +11,7 @@ class MessageRead extends Model
 
     protected $table = 'message_read';
 
-    protected $fillable = ['user_id', 'group_id', 'message_id', 'latest_message_id', 'unread'];
+    protected $fillable = ['user_id', 'group_id', 'message_id', 'unread'];
 
     public function group()
     {
@@ -21,10 +21,5 @@ class MessageRead extends Model
     public function message()
     {
         return $this->belongsTo(Message::class);
-    }
-
-    public function latestMessage()
-    {
-        return $this->belongsTo(Message::class, 'latest_message_id');
     }
 }

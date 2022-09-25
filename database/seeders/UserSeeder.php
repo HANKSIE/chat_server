@@ -55,8 +55,10 @@ class UserSeeder extends Seeder
                 $message->user()->associate($user2);
                 $message->save();
             });
-            MessageRead::create(['user_id' => $user1->id, 'group_id' => $group->id, 'unread' => 15, 'latest_message_id' => $latestMessageId]);
-            MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id, 'unread' => 0, 'message_id' => $latestMessageId, 'latest_message_id' => $latestMessageId]);
+            $group->latest_message_id = $latestMessageId;
+            $group->save();
+            MessageRead::create(['user_id' => $user1->id, 'group_id' => $group->id, 'unread' => 15]);
+            MessageRead::create(['user_id' => $user2->id, 'group_id' => $group->id, 'unread' => 0, 'message_id' => $latestMessageId]);
         });
     }
 }

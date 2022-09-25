@@ -19,6 +19,7 @@ class CreateGroupsTable extends Migration
             $table->string('name')->nullable();
             $table->string('avatar_url')->nullable();
             $table->boolean('is_one_to_one');
+            $table->foreignId('latest_message_id')->nullable()->comment('對應的group中id最大的message的id');
             $table->timestamps();
         });
     }

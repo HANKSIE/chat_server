@@ -83,7 +83,6 @@ class FriendRepository
             $record2->delete();
         });
         return $group;
-
     }
 
     public function paginate($userID, $keyword, $perPage)

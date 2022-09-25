@@ -11,10 +11,12 @@ class MessageRepository
     public function create($userID, $groupID, $body)
     {
         $message = DB::transaction(function () use ($userID, $groupID, $body) {
-            $message = Group::findOrFail($groupID)->messages()->create(['body' => $body, 'user_id' => $userID]);
+            $group = Group::findOrFail($groupID);
+            $message = $group->messages()->create(['body' => $body, 'user_id' => $userID]);
             MessageRead::where(['group_id' => $groupID])
-                ->increment('unread', 1, ['latest_message_id' => $message->id]);
-
+                ->increment('unread', 1);
+            $group->latest_message_id = $message->id;
+            $group->save();
             return $message;
         });
 

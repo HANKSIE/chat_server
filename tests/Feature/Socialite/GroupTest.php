@@ -34,10 +34,10 @@ class GroupTest extends TestCase
             ->assertJson(function (AssertableJson $json) {
                 $json
                     ->has('data.0', function ($json) {
-                        $json->where('message.id', 30)->where('unread', '15');
+                        $json->where('message.id', 30)->where('unread', '15')->has('message.group.members');
                     })
                     ->has('data.1', function ($json) {
-                        $json->where('message.id', 15)->where('unread', '15');
+                        $json->where('message.id', 15)->where('unread', '15')->has('message.group.members');
                     })
                     ->count('data', 2)
                     ->etc();
