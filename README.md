@@ -1,3 +1,5 @@
+[![test](https://github.com/hanksie/chat_server/actions/workflows/test.yml/badge.svg)](https://github.com/HANKSIE/chat_server/actions)
+
 # Boot Step
 
 1. Install dependencies
