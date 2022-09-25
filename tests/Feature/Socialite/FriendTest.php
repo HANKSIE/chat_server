@@ -4,9 +4,9 @@ namespace Tests\Feature\Socialite;
 
 use App\Events\Socialite\Friend\BeFriend;
 use App\Events\Socialite\Friend\UnFriend;
-use App\Models\FriendRequest;
 use App\Models\GroupMember;
 use App\Models\User;
+use App\Repositories\GroupRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
@@ -18,26 +18,35 @@ class FriendTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->seed();
+    }
+
+    private function getIntersectionGroup($user1, $user2)
+    {
+        return $this->app->make(GroupRepository::class)->getIntersectionGroups($user1->id, $user2->id, true)[0];
+    }
+
     public function test_send_friend_request()
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
         Sanctum::actingAs($user1);
-        $this->postJson(route('friend.request.send'), ['recipient_id' => $user2->id])
-            ->assertOk()->assertJson(function (AssertableJson $json) {
+        $this->postJson(route('friend.request.send'), ['recipient_id' => $user2->id])->assertOk()->assertJson(function (AssertableJson $json) {
             $json->where('be_friend', false);
         });
-
         $this->assertDatabaseHas('friend_requests', ['sender_id' => $user1->id, 'recipient_id' => $user2->id]);
     }
 
     public function test_send_friend_request_had_receive_request()
     {
         Event::fake();
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::find(1);
+        $user2 = User::find(17);
         $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
-        FriendRequest::create($reqData);
+        $this->assertDatabaseHas('friend_requests', $reqData);
         Sanctum::actingAs($user1);
         $this->postJson(route('friend.request.send'), ['recipient_id' => $user2->id])
             ->assertOk()->assertJson(function (AssertableJson $json) {
@@ -52,10 +61,10 @@ class FriendTest extends TestCase
     public function test_accept_friend_request()
     {
         Event::fake();
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::find(1);
+        $user2 = User::find(17);
         $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
-        FriendRequest::create($reqData);
+        $this->assertDatabaseHas('friend_requests', $reqData);
         Sanctum::actingAs($user1);
         $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id])
             ->assertOk()->assertJson(function (AssertableJson $json) {
@@ -72,10 +81,10 @@ class FriendTest extends TestCase
 
     public function test_deny_friend_request()
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::find(1);
+        $user2 = User::find(17);
         $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
-        FriendRequest::create($reqData);
+        $this->assertDatabaseHas('friend_requests', $reqData);
         Sanctum::actingAs($user1);
         $this->postJson(route('friend.request.deny'), ['sender_id' => $user2->id])
             ->assertStatus(Response::HTTP_NO_CONTENT);
@@ -84,10 +93,11 @@ class FriendTest extends TestCase
 
     public function test_revoke_friend_request()
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::find(17);
+        $user2 = User::find(1);
+
         $reqData = ['sender_id' => $user1->id, 'recipient_id' => $user2->id];
-        FriendRequest::create($reqData);
+        $this->assertDatabaseHas('friend_requests', $reqData);
         Sanctum::actingAs($user1);
         $this->postJson(route('friend.request.revoke'), ['recipient_id' => $user2->id])
             ->assertStatus(Response::HTTP_NO_CONTENT);
@@ -97,16 +107,13 @@ class FriendTest extends TestCase
     public function test_unfriend()
     {
         Event::fake();
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
-        FriendRequest::create($reqData);
+        $user1 = User::find(1);
+        $user2 = User::find(15);
         Sanctum::actingAs($user1);
-        $res = $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id]);
+        $group = $this->getIntersectionGroup($user1, $user2); // get group before unfriend.
         $this->postJson(route('friend.unfriend'), ['friend_id' => $user2->id])->assertNoContent();
-        $groupID = $res->getOriginalContent()['group_id'];
-        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user1->id, 'group_id' => $groupID])->first());
-        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user2->id, 'group_id' => $groupID])->first());
+        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user1->id, 'group_id' => $group->id])->first());
+        $this->assertNotNull(GroupMember::withTrashed()->where(['user_id' => $user2->id, 'group_id' => $group->id])->first());
         $this->assertDatabaseMissing('friends', ['user_id' => $user1->id, 'friend_id' => $user2->id]);
         $this->assertDatabaseMissing('friends', ['user_id' => $user2->id, 'friend_id' => $user1->id]);
         Event::assertDispatched(UnFriend::class);
@@ -114,7 +121,6 @@ class FriendTest extends TestCase
 
     public function test_friend_paginate()
     {
-        $this->seed();
         $user1 = User::find(1);
         Sanctum::actingAs($user1);
         $res = $this->getJson(
@@ -140,7 +146,6 @@ class FriendTest extends TestCase
 
     public function test_find_new_friend_paginate()
     {
-        $this->seed();
         $user1 = User::find(1);
         Sanctum::actingAs($user1);
         $res = $this->getJson(
@@ -165,7 +170,6 @@ class FriendTest extends TestCase
 
     public function test_friend_request_paginate()
     {
-        $this->seed();
         $user1 = User::find(1);
         Sanctum::actingAs($user1);
         $res = $this->getJson(

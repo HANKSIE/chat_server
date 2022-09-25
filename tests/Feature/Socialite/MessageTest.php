@@ -62,14 +62,21 @@ class MessageTest extends TestCase
 
     public function test_send_message_forbidden()
     {
-        Event::fake();
         $user1 = User::find(1);
         $user2 = User::find(15);
         Sanctum::actingAs($user1);
-        $group = $this->getIntersectionGroup($user1, $user2);
-        $this->postJson(route('friend.unfriend'), ['friend_id' => 15]);
-        $this->postJson("group/{$group->id}/messages", ['body' => 'any'])->assertForbidden();
-        Event::assertDispatched(SendMessage::class, 1); // only dispatched when unfriend.
+        $group = $this->getIntersectionGroup($user1, $user2); // get group before unfriend.
+
+        Event::fakeFor(function () {
+            $this->postJson(route('friend.unfriend'), ['friend_id' => 15]);
+            Event::assertDispatched(SendMessage::class);
+        });
+
+        Event::fakeFor(function () use ($group) {
+            $this->postJson("group/{$group->id}/messages", ['body' => 'any'])->assertForbidden();
+            Event::assertNotDispatched(SendMessage::class);
+        });
+
     }
 
     public function test_message_mark_as_read()

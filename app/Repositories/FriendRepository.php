@@ -68,19 +68,22 @@ class FriendRepository
         $user1 = User::findOrFail($user1ID);
         $user2 = User::findOrFail($user2ID);
         $groups = $this->groupRepository->getIntersectionGroups($user1->id, $user2->id, true);
-        if (count($groups) !== 0) {
-            $group = $groups[0];
-            $record1 = GroupMember::where(['user_id' => $user1->id, 'group_id' => $group->id])->firstOrFail();
-            $record2 = GroupMember::where(['user_id' => $user2->id, 'group_id' => $group->id])->firstOrFail();
-            DB::transaction(function () use ($user1, $user2, $record1, $record2) {
-                $user1->friends()->detach($user2->id);
-                $user2->friends()->detach($user1->id);
-                $record1->delete();
-                $record2->delete();
-            });
-            return $group;
+
+        if (count($groups) === 0) {
+            return null;
         }
-        return null;
+
+        $group = $groups[0];
+        $record1 = GroupMember::where(['user_id' => $user1->id, 'group_id' => $group->id])->firstOrFail();
+        $record2 = GroupMember::where(['user_id' => $user2->id, 'group_id' => $group->id])->firstOrFail();
+        DB::transaction(function () use ($user1, $user2, $record1, $record2) {
+            $user1->friends()->detach($user2->id);
+            $user2->friends()->detach($user1->id);
+            $record1->delete();
+            $record2->delete();
+        });
+        return $group;
+
     }
 
     public function paginate($userID, $keyword, $perPage)

@@ -17,7 +17,7 @@ class MessageService
 
     public function createAndMarkAsRead($userID, $groupID, $body)
     {
-        abort_if(Gate::denies('access-message', $groupID), 403, 'forbidden');
+        Gate::authorize('access-message', $groupID);
 
         $data = $this->messageRepository->createAndMarkAsRead($userID, $groupID, $body);
         $message = $data['message'];
