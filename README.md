@@ -1,4 +1,4 @@
-[![test](https://github.com/hanksie/chat_server/actions/workflows/test.yml/badge.svg)](https://github.com/HANKSIE/chat_server/actions)
+[![test](https://github.com/hanksie/chat_server/actions/workflows/master.yml/badge.svg)](https://github.com/HANKSIE/chat_server/actions)
 
 # Boot Step
 
