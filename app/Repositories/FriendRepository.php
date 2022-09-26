@@ -30,10 +30,7 @@ class FriendRepository
 
     public function acceptRequest($senderID, $recipientID)
     {
-        $req = FriendRequest::where(['sender_id' => $senderID, 'recipient_id' => $recipientID])->first();
-        if (is_null($req)) {
-            return null;
-        }
+        $req = FriendRequest::where(['sender_id' => $senderID, 'recipient_id' => $recipientID])->firstOrFail();
         $sender = User::findOrFail($senderID);
         $recipient = User::findOrFail($recipientID);
         return DB::transaction(function () use ($sender, $recipient, $req) {
@@ -78,8 +75,6 @@ class FriendRepository
 
     public function paginate($userID, $keyword, $perPage)
     {
-        $paginate = null;
-
         $setIntersectGroupQuery = function ($query) use ($userID) {
             $query->oneToOne()->whereHas('members', function ($query) use ($userID) {
                 $query->where('user_id', $userID);
@@ -99,8 +94,6 @@ class FriendRepository
 
         $paginate->through(function ($user) {
             $group = $user->groups[0];
-            unset($group->pivot);
-            unset($group->latestMessage);
             unset($user->groups);
             return [
                 'user' => $user,
@@ -119,8 +112,7 @@ class FriendRepository
         )->withQueryString();
 
         $ids = $paginate->getCollection()->map(function ($user) {return $user->id;});
-        $stateMap = [];
-        DB::table('users')->selectRaw(
+        $stateMap = DB::table('users')->selectRaw(
             "
             id,
             (CASE
@@ -137,8 +129,8 @@ class FriendRepository
             collect()->range(1, 4)->map(function () use ($userID) {
                 return $userID;
             })->toArray()
-        )->whereIn('id', $ids)->get()->each(function ($data) use (&$stateMap) {
-            $stateMap[$data->id] = $data->state;
+        )->whereIn('id', $ids)->get()->mapWithKeys(function ($data) {
+            return [$data->id => $data->state];
         });
 
         $paginate->through(function ($user) use ($stateMap) {
