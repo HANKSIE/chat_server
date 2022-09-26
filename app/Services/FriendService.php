@@ -41,9 +41,7 @@ class FriendService
     public function acceptRequest($senderID, $recipientID)
     {
         $group = $this->friendRepository->acceptRequest($senderID, $recipientID);
-        if (!is_null($group)) {
-            broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
-        }
+        broadcast(new BeFriend($senderID, $recipientID, $group->id))->toOthers();
         return $group;
     }
 

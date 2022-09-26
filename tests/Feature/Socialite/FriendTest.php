@@ -79,6 +79,19 @@ class FriendTest extends TestCase
         Event::assertDispatched(BeFriend::class);
     }
 
+    public function test_accept_friend_request_fail()
+    {
+        Event::fake();
+        $user1 = User::find(1);
+        $user2 = User::find(2);
+        $reqData = ['sender_id' => $user2->id, 'recipient_id' => $user1->id];
+        $this->assertDatabaseMissing('friend_requests', $reqData);
+        Sanctum::actingAs($user1);
+        $this->postJson(route('friend.request.accept'), ['sender_id' => $user2->id])
+            ->assertNotFound();
+        Event::assertNotDispatched(BeFriend::class);
+    }
+
     public function test_deny_friend_request()
     {
         $user1 = User::find(1);
