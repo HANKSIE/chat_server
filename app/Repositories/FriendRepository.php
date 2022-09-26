@@ -34,9 +34,16 @@ class FriendRepository
         if (is_null($req)) {
             return null;
         }
-
-        return DB::transaction(function () use ($senderID, $recipientID, $req) {
-            $group = $this->beFriend($senderID, $recipientID);
+        $sender = User::findOrFail($senderID);
+        $recipient = User::findOrFail($recipientID);
+        return DB::transaction(function () use ($sender, $recipient, $req) {
+            $group = Group::create(['is_one_to_one' => true]);
+            $this->groupRepository->join($recipient->id, $group->id);
+            $this->groupRepository->join($sender->id, $group->id);
+            MessageRead::firstOrCreate(['user_id' => $sender->id, 'group_id' => $group->id]);
+            MessageRead::firstOrCreate(['user_id' => $recipient->id, 'group_id' => $group->id]);
+            $sender->friends()->attach($recipient, ['group_id' => $group->id]);
+            $recipient->friends()->attach($sender, ['group_id' => $group->id]);
             $req->delete();
             return $group;
         });
@@ -45,22 +52,6 @@ class FriendRepository
     public function hasRequest($senderID, $recipientID)
     {
         return User::findOrFail($senderID)->friendRequestsFromMe()->where('recipient_id', $recipientID)->exists();
-    }
-
-    private function beFriend($senderID, $recipientID)
-    {
-        $sender = User::findOrFail($senderID);
-        $recipient = User::findOrFail($recipientID);
-        return DB::transaction(function () use ($sender, $recipient) {
-            $group = Group::create(['is_one_to_one' => true]);
-            $this->groupRepository->join($recipient->id, $group->id);
-            $this->groupRepository->join($sender->id, $group->id);
-            MessageRead::firstOrCreate(['user_id' => $sender->id, 'group_id' => $group->id]);
-            MessageRead::firstOrCreate(['user_id' => $recipient->id, 'group_id' => $group->id]);
-            $sender->friends()->attach($recipient, ['group_id' => $group->id]);
-            $recipient->friends()->attach($sender, ['group_id' => $group->id]);
-            return $group;
-        });
     }
 
     public function unFriend($user1ID, $user2ID)
